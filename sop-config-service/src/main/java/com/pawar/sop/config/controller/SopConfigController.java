@@ -104,6 +104,7 @@ public class SopConfigController {
 	@GetMapping(value = "/location-range/list", produces = "application/json")
 	public ResponseEntity<List<SopLocationRangeDto>> getAllLocationRanges() {
 		List<SopLocationRangeDto> locationRanges = sopConfigService.getAllLocationRanges();
+		logger.info("Location Ranges : {}",locationRanges);
 		return new ResponseEntity<>(locationRanges, HttpStatus.OK);
 	}
 

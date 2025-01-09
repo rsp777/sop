@@ -18,7 +18,29 @@
 		<module>sop-config-service</module>
 		<module>sop-assignment-service</module>
 		<module>unassignment-service</module>
-		<module>asn-incoming-servicee</module>
+		<module>sop-asn-service</module>
 	</modules>
-
+	<repositories>
+		<!--<repository>
+			<id>my-repo-id</id>
+			<url>http://localhost:8081/repository/maven-snapshots/</url>
+		</repository>-->
+		<repository>
+			<id>github</id>
+			<name>GitHub OWNER Apache Maven Packages</name>
+			<url>https://maven.pkg.github.com/rsp777/todo-common</url>
+		</repository>
+	</repositories>
+	<distributionManagement>
+		<!--<repository>
+			<id>my-repo-id</id>
+			<url>http://localhost:8081/repository/maven-snapshots/</url>
+		</repository>-->
+		<repository>
+			<id>github</id>
+			<name>GitHub OWNER Apache Maven Packages</name>
+			<url>https://maven.pkg.github.com/rsp777/sop</url>
+		</repository>
+	</distributionManagement>
+	
 </project>

@@ -3,11 +3,16 @@
 	xmlns="http://maven.apache.org/POM/4.0.0"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
+	<!--
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.1.5</version>
+	</parent>-->
+	<parent>
+		<groupId>com.pawar.inventory</groupId>
+		<artifactId>sop</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
 	<groupId>com.pawar.inventory</groupId>
@@ -86,8 +91,8 @@
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
-	<distributionManagement>
-		<!--<repository>
+	<!--<distributionManagement>
+		<repository>
 			<id>my-repo-id</id>
 			<url>http://localhost:8081/repository/maven-snapshots/</url>
 		</repository>
@@ -95,8 +100,8 @@
 			<id>github</id>
 			<name>GitHub OWNER Apache Maven Packages</name>
 			<url>https://maven.pkg.github.com/rsp777/inventory-management-system</url>
-		</repository>-->
-	</distributionManagement>
+		</repository>
+	</distributionManagement>-->	
 	<build>
 		<plugins>
 			<plugin>
