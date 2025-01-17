@@ -4,8 +4,8 @@
   <servers>
     <server>
       <id>gitea</id>
-      <username>${env.GITHUB_ACTOR}</username>
-      <password>${env.GITHUB_TOKEN}</password>
+      <username>${env.USERNAME}</username>
+      <password>${env.TOKEN}</password>
     </server>
   </servers>
 </settings>
