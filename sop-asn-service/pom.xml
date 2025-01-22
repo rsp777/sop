@@ -5,7 +5,7 @@
 
 	<groupId>com.pawar.inventory</groupId>
 	<artifactId>sop-asn-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>RELEASE_1.0</version>
 	<packaging>jar</packaging>
 
 	<!--<parent>
