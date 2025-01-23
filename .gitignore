@@ -1,4 +1,10 @@
 *.log*
 *.jar
-*/target/**
-*/logs/**
+.project
+.settings
+sop-config-service/target/
+sop-asn-service/target/
+sop-assignment-service/target/
+sop-config-service/logs/
+sop-asn-service/logs/
+sop-assignment-service/logs/
