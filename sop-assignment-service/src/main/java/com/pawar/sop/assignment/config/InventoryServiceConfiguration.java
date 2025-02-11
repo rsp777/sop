@@ -13,7 +13,10 @@ public class InventoryServiceConfiguration {
 
 	@Value("${invn.lpns.service.get.category}")
 	private String getLpnByCategoryURL;
-
+	
+	@Value("${invn.inventory.service.checkActiveInventory}")
+	private String checkActiveInventoryURL;
+	
 	public String getCreateInventoryURL() {
 		return createInventoryURL;
 	}
@@ -30,4 +33,11 @@ public class InventoryServiceConfiguration {
 		this.getLpnByCategoryURL = getLpnByCategoryURL;
 	}
 
+	public String getCheckActiveInventoryURL() {
+		return checkActiveInventoryURL;
+	}
+
+	public void setCheckActiveInventoryURL(String checkActiveInventoryURL) {
+		this.checkActiveInventoryURL = checkActiveInventoryURL;
+	}
 }

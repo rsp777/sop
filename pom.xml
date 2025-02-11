@@ -7,7 +7,7 @@
   </parent>
   <groupId>com.pawar.inventory</groupId>
   <artifactId>sop</artifactId>
-  <version>Dev_v1.2</version>
+  <version>Dev_v1.3</version>
   <packaging>pom</packaging>
   <name>SOP</name>
   <url>http://maven.apache.org</url>
@@ -17,6 +17,7 @@
     <module>unassignment-service</module>
     <module>sop-asn-service</module>
     <module>sop-properties</module>
+    <module>sop-log-service</module>
   </modules>
   <dependencyManagement>
     <dependencies>

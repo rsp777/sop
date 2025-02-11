@@ -37,7 +37,25 @@ public class SopConfigController {
 
 	@Autowired
 	private SOPConfigService sopConfigService;
+	
+	
+	@GetMapping(value = "/action-type")
+	public ResponseEntity<?> getActionTypes() {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new JavaTimeModule());
 
+
+		try {
+			List<SopActionType> actionTypes = sopConfigService.getActionTypes();
+			logger.info(""+actionTypes);
+			return new ResponseEntity<List<SopActionType>>(actionTypes, HttpStatus.OK);
+		} catch (Exception e) {
+			logger.error("Exception occurred: ", e);
+			e.printStackTrace();
+			return new ResponseEntity<String>("An error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
 	
 	@GetMapping(value = "/action-type/{actionType}")
 	public ResponseEntity<?> getActionType(@PathVariable String actionType) {

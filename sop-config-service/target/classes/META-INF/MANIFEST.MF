@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Build-Jdk-Spec: 21
 Implementation-Title: sop-config-service
-Implementation-Version: Dev_v1.2
+Implementation-Version: Dev_v1.3
 Created-By: Maven Integration for Eclipse
 

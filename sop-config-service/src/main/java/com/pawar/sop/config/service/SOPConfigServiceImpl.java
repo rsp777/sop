@@ -250,5 +250,11 @@ public class SOPConfigServiceImpl implements SOPConfigService {
 		return "Sop Eligible Locations updated";
 	}
 
+	@Override
+	public List<SopActionType> getActionTypes() {
+		List<SopActionType> sopActionType = sopActionTypeRepository.findAll();
+		return sopActionType;
+	}
+
 	
 }

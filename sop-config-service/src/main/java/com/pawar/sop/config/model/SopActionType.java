@@ -21,14 +21,14 @@ public class SopActionType {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "sop_action_type_id")
+	@Column(name = "sopActionTypeId")
 	private Integer sopActionTypeId;
 
-	@JsonProperty("action_desc")
+	@JsonProperty("actionDesc")
 	@Column(name = "action_desc")
 	private String actionDesc;
 
-	@JsonProperty("action_type")
+	@JsonProperty("actionType")
 	@Column(name = "action_type")
 	private String actionType;
 
@@ -45,11 +45,11 @@ public class SopActionType {
 	private LocalDateTime lastUpdatedDttm;
 
 	@JsonInclude(value = Include.CUSTOM)
-	@Column(name = "created_source")
+	@Column(name = "createdSource")
 	private String createdSource;
 
 	@JsonInclude(value = Include.CUSTOM)
-	@Column(name = "last_updated_source")
+	@Column(name = "lastUpdatedSource")
 	private String lastUpdatedSource;
 
 	public SopActionType() {

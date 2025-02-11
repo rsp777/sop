@@ -31,4 +31,6 @@ public interface SOPConfigService {
 
 	SopActionType getActionType(String actionType);
 
+	List<SopActionType> getActionTypes();
+
 }
