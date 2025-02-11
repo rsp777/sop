@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.pawar.sop.assignment.config.InventoryServiceConfiguration;
 import com.pawar.sop.assignment.httputils.HttpUtils;
+import com.pawar.sop.http.service.HttpService;
 
 @Component
 public class InventoryWrapper {
@@ -17,18 +18,26 @@ public class InventoryWrapper {
 
 	private final InventoryServiceConfiguration inventoryServiceConfiguration;
 	private final HttpUtils httpUtils;
+	private final HttpService httpService;
 	
-	public InventoryWrapper(InventoryServiceConfiguration inventoryServiceConfiguration, HttpUtils httpUtils) {
+//	public InventoryWrapper(InventoryServiceConfiguration inventoryServiceConfiguration, HttpUtils httpUtils) {
+//		this.inventoryServiceConfiguration = inventoryServiceConfiguration;
+//		this.httpUtils = httpUtils;
+//	}
+	
+	public InventoryWrapper(InventoryServiceConfiguration inventoryServiceConfiguration, HttpUtils httpUtils,HttpService httpService) {
 		this.inventoryServiceConfiguration = inventoryServiceConfiguration;
 		this.httpUtils = httpUtils;
+		this.httpService = httpService;
 	}
+	
 	public boolean checkActiveInventory(String itemName) {
 		boolean isExists = false;
 		String json = createInventoryJson(itemName);
 		logger.info("check Active Inventory Payload : " + json);
 		String url = inventoryServiceConfiguration.getCheckActiveInventoryURL();
 		logger.info("URL : {}", url);
-		ResponseEntity<String> response = httpUtils.restCall(url, HttpMethod.POST, json, null);
+		ResponseEntity<String> response = httpService.restCall(url, HttpMethod.POST, json, null);
 		logger.info("Response : {}",response.getBody());
 		if (!response.getBody().contains("404")) {
 			isExists = true;
