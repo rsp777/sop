@@ -2,6 +2,8 @@
 *.jar
 .project
 .settings
+*/target/*
+*/logs/*
 sop-config-service/target/
 sop-asn-service/target/
 sop-assignment-service/target/
