@@ -1,11 +1,17 @@
 package com.pawar.sop.assignment.service;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -21,8 +27,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -36,6 +44,7 @@ import com.pawar.inventory.entity.ASNDto;
 import com.pawar.inventory.entity.AssignmentModel;
 import com.pawar.inventory.entity.Inventory;
 import com.pawar.inventory.entity.Location;
+import com.pawar.inventory.entity.LogEntryDto;
 import com.pawar.inventory.entity.Lpn;
 import com.pawar.inventory.entity.LpnDto;
 import com.pawar.inventory.entity.SopActionTypeDto;
@@ -48,6 +57,9 @@ import com.pawar.sop.assignment.config.SopConfigServiceConfiguration;
 import com.pawar.sop.assignment.constants.AsnStatusConstants;
 import com.pawar.sop.assignment.constants.LpnFacilityStatusContants;
 import com.pawar.sop.assignment.controller.SopAssignmentController;
+import com.pawar.sop.assignment.log.wrapper.InventoryWrapper;
+import com.pawar.sop.assignment.log.wrapper.SopConfigWrapper;
+import com.pawar.sop.assignment.log.wrapper.SopLogWrapper;
 import com.pawar.sop.assignment.model.SopEligibleItems;
 import com.pawar.sop.assignment.repository.SopEligibleItemsRepository;
 
@@ -55,6 +67,9 @@ import com.pawar.sop.assignment.repository.SopEligibleItemsRepository;
 public class SOPAssignServiceImpl implements SOPAssignService {
 
 	private final static Logger logger = LoggerFactory.getLogger(SOPAssignServiceImpl.class);
+
+	@Value("${spring.application.name}")
+	private String service_name;
 
 	private final static String LOCATION_RANGE_ADD_SUCCESS = "Location Range Added Successfully.";
 	private final static String LOCATION_RANGE_ADD_FAILED = "Failed to add Location Range.";
@@ -64,28 +79,23 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 	private final static String ASSIGNMENT_INTERRUPTED = "Assignment Interrupted";
 	private final static String NO_ELIGIBLE_UPCS = "No Eligible UPCs";
 	private final static String NO_ELIGIBLE_LOCATIONS = "No Eligible Locations";
-
-//	@Value("${asn.service.get}")
-//	private static String ASN_GET;
-//
-//	@Value("${invn.create.inventory}")
-//	private static String CREATE_INVENTORY;
-//
-//	@Value("${sop.config.service.location.range}")
-//	private static String LOCATION_RANGE_GET;
-//
-//	@Value("${sop.config.service.eligible.locations.get}")
-//	private static String ELIGIBILE_LOCATIONS_GET;
-//
-//	@Value("${sop.config.service.eligible.locations.update}")
-//	private static String ELIGIBILE_LOCATIONS_UPDATE;
-
+	private final static String NEW_BATCH = "New Batch ";
+	private final static String TRIGGERD = " Trigger for Category : %s";
+	private final static String ASSIGNMENT_CREATED_SUCCESSFULLY = "Assignment Created Successfully";
 	private final HttpClient httpClient;
 	private final ObjectMapper objectMapper;
 	private final SopConfigServiceConfiguration sopConfigServiceConfiguration;
 	private final InventoryServiceConfiguration inventoryServiceConfiguration;
 	private final AsnServiceConfiguration asnServiceConfiguration;
+	
+	@Autowired
+	private SopConfigWrapper sopConfigWrapper;
+	
+	@Autowired
+	private SopLogWrapper sopLogWrapper;
 
+	@Autowired
+	private InventoryWrapper inventoryWrapper;
 	@Autowired
 	private SopEligibleItemsRepository sopEligibleItemsRepository;
 
@@ -98,6 +108,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		this.sopConfigServiceConfiguration = sopConfigServiceConfiguration;
 		this.inventoryServiceConfiguration = inventoryServiceConfiguration;
 		this.asnServiceConfiguration = asnServiceConfiguration;
+
 	}
 
 	public Iterable<Location> findLocationByLocationRange(String fromLocation, String toLocation)
@@ -155,8 +166,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		for (ASNDto asnDto : fetchedASNDtos) {
 			List<LpnDto> lpnDtos = asnDto.getLpns();
 			for (LpnDto lpnDto : lpnDtos) {
-//				logger.info("ASN : {}, Lpn : {}, Item : {}", asnDto.getAsnBrcd(), lpnDto.getLpn_name(),
-//						lpnDto.getItem().getItem_name());
+
 				logger.info("condition : {} , ASN : {}, Lpn : {}",
 						((asnDto.getAsnStatus() == AsnStatusConstants.IN_TRANSIT)
 								&& (lpnDto.getLpn_facility_status() == LpnFacilityStatusContants.IN_TRANSIT)),
@@ -180,6 +190,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 
 				} else {
 					logger.info("No Eligible UPCs");
+					return sopEligibleItemsDtos;
 				}
 			}
 		}
@@ -191,6 +202,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 
 				} else {
 					logger.info("No Eligible UPCs");
+					return sopEligibleItemsDtos;
 				}
 
 			}
@@ -388,134 +400,184 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		return category;
 	}
 
-//	public String getASNUrl(String serviceName, String category) {
-//		String url = SOP_ASN_BASE_URL + serviceName + "/asns?category=" + category;
-//		return url;
-//	}
-
-//	public String getLocationRangeURL(String serviceName, String fromLocation, String toLocation) {
-//		String url = INVMS_BASE_URL + serviceName + "/list/by-range?fromLocation=" + fromLocation + "&toLocation="
-//				+ toLocation;
-//		return url;
-//	}
-
 	@Override
 	public String createAssignment(AssignmentModel assignmentModel) throws ClientProtocolException, IOException {
-		logger.info("Starting to create assignment");
+		String actionType = assignmentModel.getSopActionType();
 		String category = assignmentModel.getCategory();
+		logger.info("Action Type : {} ", actionType);
+		String batchId = sopLogWrapper.createBatch(actionType);
+		LogEntryDto logEntryDto = new LogEntryDto();
+
+		logEntryDto.setBatchId(batchId);
+		logEntryDto.setBatchMode(actionType);
+		logEntryDto.setMessage(NEW_BATCH + actionType + String.format(TRIGGERD, category));
+		logEntryDto.setCreatedAt(LocalDateTime.now());
+		logEntryDto.setServiceName(service_name);
+		logEntryDto.setIpAddress(Inet4Address.getLocalHost().getHostAddress());
+		sopLogWrapper.createLog(logEntryDto);
+
+		logger.info("Starting to create assignment");
 		List<SopEligibleItemsDto> sopEligibleItemsDtos = getEligibleUpcs(category);
+		int eligibleUpcsCount = getEligibleUpcsCount(sopEligibleItemsDtos);
+		logEntryDto.setModuleName("Eligible UPCs module");
+		logEntryDto.setMessage("Total " + eligibleUpcsCount + " Eligible UPCs found ");
+		logEntryDto.setCreatedAt(LocalDateTime.now());
+		sopLogWrapper.updateBatchStatus(batchId, 20);
+		sopLogWrapper.createLog(logEntryDto);
 		int count = 0;
 		if (sopEligibleItemsDtos.isEmpty()) {
+			logEntryDto.setMessage(ASSIGNMENT_INTERRUPTED + " : " + NO_ELIGIBLE_UPCS);
+			logEntryDto.setCreatedAt(LocalDateTime.now());
+			sopLogWrapper.updateBatchStatus(batchId, 96);
+			sopLogWrapper.createLog(logEntryDto);
+
 			return ASSIGNMENT_INTERRUPTED + " : " + NO_ELIGIBLE_UPCS;
 		}
 
 		logger.info("Eligible UPCs : {}", sopEligibleItemsDtos);
-		List<SopEligibleLocationsDto> sopEligibleLocationsDtos = getEligibleLocations(category);
+		List<SopEligibleLocationsDto> sopEligibleLocationsDtos = sopConfigWrapper.getEligibleLocations(category);
+		logEntryDto.setModuleName("Eligible Locations module");
+		logEntryDto.setMessage("Total " + sopEligibleLocationsDtos.size() + " Eligible Locations found ");
+		logEntryDto.setCreatedAt(LocalDateTime.now());
+		sopLogWrapper.updateBatchStatus(batchId, 30);
+		sopLogWrapper.createLog(logEntryDto);
 
 		if (sopEligibleLocationsDtos.isEmpty()) {
+			logEntryDto.setMessage(ASSIGNMENT_INTERRUPTED + " : " + NO_ELIGIBLE_LOCATIONS);
+			logEntryDto.setCreatedAt(LocalDateTime.now());
+			sopLogWrapper.updateBatchStatus(batchId, 96);
+			sopLogWrapper.createLog(logEntryDto);
 			return ASSIGNMENT_INTERRUPTED + " : " + NO_ELIGIBLE_LOCATIONS;
 		}
 
 		logger.info("Eligible Locations : {}", sopEligibleLocationsDtos);
-		for (SopEligibleLocationsDto sopEligibleLocationsDto : sopEligibleLocationsDtos) {
-			for (SopEligibleItemsDto sopEligibleItemsDto : sopEligibleItemsDtos) {
+
+//		for (SopEligibleLocationsDto sopEligibleLocationsDto : sopEligibleLocationsDtos) {
+
+		for (SopEligibleItemsDto sopEligibleItemsDto : sopEligibleItemsDtos) {
+			for (SopEligibleLocationsDto sopEligibleLocationsDto : sopEligibleLocationsDtos) {
+				count=0;
 				String itemBrcd = sopEligibleItemsDto.getItem_brcd();
 				String locnBrcd = sopEligibleLocationsDto.getLocn_brcd();
-
-				if (sopEligibleLocationsDto.getAssignedNbrOfUpc() == 0
-						&& sopEligibleLocationsDto.getMaxNbrOfSku() > 0) {
+				logEntryDto.setItem(sopEligibleItemsDto.getItem_brcd());
+				logEntryDto.setLocation(sopEligibleLocationsDto.getLocn_brcd());
+				logEntryDto.setModuleName("Assignment Module");
+				logEntryDto.setAsn(sopEligibleItemsDto.getAsnBrcd());
+				if (sopEligibleLocationsDto.getAssignedNbrOfUpc() >= 0 && sopEligibleLocationsDto.getMaxNbrOfSku() > 0
+						&& (sopEligibleLocationsDto.getAssignedNbrOfUpc() < sopEligibleLocationsDto.getMaxNbrOfSku())) {
 					if (canAssign(sopEligibleLocationsDto, sopEligibleItemsDto)) {
+						sopLogWrapper.updateBatchStatus(batchId, 45);
+
 						logger.info("Creating Assignment for UPC: {} and Location : {}", itemBrcd, locnBrcd);
-						createInventory(itemBrcd, locnBrcd);
+						String message = String.format("Creating Assignment for UPC: %s and Location : %s", itemBrcd,
+								locnBrcd);
+						logEntryDto.setMessage(message);
+						sopLogWrapper.createLog(logEntryDto);
+						inventoryWrapper.createInventory(itemBrcd, locnBrcd);
+						message = String.format("Created Assignment for UPC: %s and Location : %s", itemBrcd, locnBrcd);
+						logEntryDto.setCreatedAt(LocalDateTime.now());
+						logEntryDto.setMessage(message);
+						sopLogWrapper.createLog(logEntryDto);
 						count++;
 						sopEligibleLocationsDto.setAssignedNbrOfUpc(count);
 						sopEligibleLocationsDto.setLastUpdatedDttm(LocalDateTime.now());
 						sopEligibleLocationsDto.setLastUpdatedSource("assignment-service");
-						updateSopEligibleLocations(sopEligibleLocationsDto);
-						logger.info("Assignment Created Successfully");
-						return "Assignment Created Successfully";
+						sopConfigWrapper.updateSopEligibleLocations(sopEligibleLocationsDto);
+						logger.info("Location updated with ");
 					} else {
-						logger.info("Check Item Dimensions : {} : {}", itemBrcd, sopEligibleItemsDto.getItem_id());
+						String message = String.format(FAILED_TO_CREATED_ASSIGNMENT + " : Check Item Dimensions: %s",
+								itemBrcd);
+						logEntryDto.setMessage(message);
+						logEntryDto.setCreatedAt(LocalDateTime.now());
+						sopLogWrapper.createLog(logEntryDto);
+						logger.info("Check Item Dimensions : {}", itemBrcd);
 					}
 				} else {
+					String message = String.format("Location : %s already assigned with Item : %s", locnBrcd, itemBrcd);
+					logEntryDto.setMessage(message);
+					logEntryDto.setCreatedAt(LocalDateTime.now());
+					sopLogWrapper.createLog(logEntryDto);
 					logger.info("Location : {} already assigned with Item : {}", locnBrcd, itemBrcd);
-//	                return String.format("Location: %s already assigned with Item: %s", locnBrcd, itemBrcd);
 				}
+
 			}
+
 		}
-		return FAILED_TO_CREATED_ASSIGNMENT;
+		logger.info("Compare eligibleUpcs : {} and count : {}", eligibleUpcsCount, count);
+		if (eligibleUpcsCount == count) {
+			logEntryDto.setMessage(ASSIGNMENT_CREATED_SUCCESSFULLY);
+			logEntryDto.setCreatedAt(LocalDateTime.now());
+			sopLogWrapper.updateBatchStatus(batchId, 90);
+			sopLogWrapper.createLog(logEntryDto);
+			return ASSIGNMENT_CREATED_SUCCESSFULLY;
+		} else {
+			logEntryDto.setMessage(FAILED_TO_CREATED_ASSIGNMENT);
+			logEntryDto.setCreatedAt(LocalDateTime.now());
+			sopLogWrapper.updateBatchStatus(batchId, 96);
+			sopLogWrapper.createLog(logEntryDto);
+			return FAILED_TO_CREATED_ASSIGNMENT;
+		}
+	}
+
+	private int getEligibleUpcsCount(List<SopEligibleItemsDto> sopEligibleItemsDtos) {
+		Set<String> uniqueUpcs = new HashSet<>(); // Use a Set to store unique UPCs
+
+		for (SopEligibleItemsDto sopEligibleItemsDto : sopEligibleItemsDtos) {
+			String itemBrcd = sopEligibleItemsDto.getItem_brcd();
+			uniqueUpcs.add(itemBrcd); // Add UPC to the Set
+		}
+
+		return uniqueUpcs.size(); // Return the count of unique UPCs
 	}
 
 	private boolean canAssign(SopEligibleLocationsDto location, SopEligibleItemsDto item) {
-		return location.getLength() >= item.getLength() && location.getWidth() >= item.getLength();
+		// Parameter validation
+		if (location == null || item == null) {
+			logger.error("Invalid parameters: location={}, item={}", location, item);
+			return false;
+		}
+
+		// Validate numerical constraints
+		if (location.getLength() <= 0 || location.getWidth() <= 0 || item.getLength() <= 0 || item.getWidth() <= 0) {
+			logger.warn("Invalid dimensions - Location: {}{}, Item: {}{}", location.getLength(), location.getWidth(),
+					item.getLength(), item.getWidth());
+			return false;
+		}
+
+		final String itemBrcd = item.getItem_brcd();
+		boolean inventoryExists = inventoryWrapper.checkActiveInventory(itemBrcd);
+		logger.info("Inventory check for item {}: {}", itemBrcd, inventoryExists);
+
+		if (inventoryExists) {
+			logger.info("Assignment blocked - Active inventory exists for item {}", itemBrcd);
+			return false;
+		}
+
+		final int assignedUpc = location.getAssignedNbrOfUpc();
+		final int maxSkuCapacity = location.getMaxNbrOfSku();
+
+		// Check for empty location condition
+		if (assignedUpc == 0) {
+			boolean validEmptyLocation = maxSkuCapacity > 0; // Ensure location can accept items
+			boolean fitsDimensions = fitsInLocation(location, item);
+
+			logger.info("Empty location check - Valid: {}, Fits: {}", validEmptyLocation, fitsDimensions);
+			return validEmptyLocation && fitsDimensions;
+		}
+
+		// Occupied location checks
+		boolean hasCapacity = assignedUpc < maxSkuCapacity;
+		boolean fitsDimensions = fitsInLocation(location, item);
+		boolean meetsAssignmentCriteria = hasCapacity && fitsDimensions;
+
+		logger.info("Occupied location check - Capacity: {}/{} ({}), Fits: {}", assignedUpc, maxSkuCapacity,
+				hasCapacity, fitsDimensions);
+
+		return meetsAssignmentCriteria;
 	}
 
-	private void updateSopEligibleLocations(SopEligibleLocationsDto sopEligibleLocationsDto)
-			throws ClientProtocolException, IOException {
-		String url = sopConfigServiceConfiguration.getEligibleLocationsUpdateURL();
-		logger.info("ELIGIBILE_LOCATIONS_UPDATE : {}", url);
-		String sopEligibleLocationsJson = objectMapper.writeValueAsString(sopEligibleLocationsDto);
-		logger.info("sopEligibleLocationsJson : " + sopEligibleLocationsJson);
-		HttpHeaders httpHeaders = new HttpHeaders();
-
-		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-		HttpPut httpPut = new HttpPut(url);
-		StringEntity entity = new StringEntity(sopEligibleLocationsJson, ContentType.APPLICATION_JSON);
-		httpPut.setEntity(entity);
-		// HttpEntity<String> httpEntity = new HttpEntity<String>(json, httpHeaders);
-
-		httpClient.execute(httpPut);
-		// logger.info("entity : "+entity);
-//		String json2 = EntityUtils.toString(entity);
-		// RestTemplate restTemplate = new RestTemplate();
-		// String response2 = restTemplate.postForObject(url, httpEntity, String.class);
-		// String response = restTemplate.exchange(url, null, httpEntity, String.class);
-
-		logger.info("Response SopEligibleLocations updated");
-
+	private boolean fitsInLocation(SopEligibleLocationsDto location, SopEligibleItemsDto item) {
+		return location.getLength() >= item.getLength() && location.getWidth() >= item.getWidth()
+				&& location.getHeight() >= item.getHeight(); // Added height check if available
 	}
-
-	public void createInventory(String itemName, String locnBrcd) throws ClientProtocolException, IOException {
-		JSONObject inventory_json = new JSONObject();
-		JSONObject item = new JSONObject();
-		JSONObject location = new JSONObject();
-		inventory_json.put("item", itemName);
-		inventory_json.put("location", locnBrcd);
-		String json = inventory_json.toString();
-
-		logger.info("json ; " + json);
-
-		String url = inventoryServiceConfiguration.getCreateInventoryURL();
-		logger.info("CREATE_INVENTORY : {}", url);
-
-		HttpHeaders httpHeaders = new HttpHeaders();
-
-		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-		HttpEntity<String> httpEntity = new HttpEntity<String>(json, httpHeaders);
-		RestTemplate restTemplate = new RestTemplate();
-		String response = restTemplate.postForObject(url, httpEntity, String.class);
-		logger.info(response);
-	}
-
-	public List<SopEligibleLocationsDto> getEligibleLocations(String category)
-			throws ClientProtocolException, IOException {
-
-		String url = sopConfigServiceConfiguration.getEligibleLocationsURL().replace("{category}", category);
-		logger.info("ELIGIBILE_LOCATIONS_GET : {}", url);
-		// "http://localhost:8089/sop-config-service/eligible-locations/category/" +
-		// category;
-		HttpGet request = new HttpGet(url);
-		HttpResponse response = httpClient.execute(request);
-		org.apache.http.HttpEntity entity = response.getEntity();
-		String json = EntityUtils.toString(entity);
-		List<SopEligibleLocationsDto> fetchedSopEligibleLocationsDtos = objectMapper.readValue(json,
-				new TypeReference<List<SopEligibleLocationsDto>>() {
-				});
-
-		logger.info("fetchedSopEligibleLocationsDtos : {}", fetchedSopEligibleLocationsDtos);
-		return fetchedSopEligibleLocationsDtos;
-
-	}
-
 }

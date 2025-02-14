@@ -19,6 +19,12 @@
 		<module>sop-assignment-service</module>
 		<module>unassignment-service</module>
 		<module>sop-asn-service</module>
+<<<<<<< Updated upstream
+=======
+		<module>sop-properties</module>
+		<module>sop-log-service</module>
+
+>>>>>>> Stashed changes
 	</modules>
 	<repositories>
 		<!--<repository>
