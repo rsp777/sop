@@ -90,6 +90,14 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
+<<<<<<< Updated upstream
+=======
+		<dependency>
+			<groupId>com.pawar.inventory</groupId>
+			<artifactId>sop-http2</artifactId>
+			<version>Dev_v1.3</version>
+		</dependency>
+>>>>>>> Stashed changes
 	</dependencies>
 	<!--<distributionManagement>
 		<repository>
