@@ -1,11 +1,13 @@
 package com.pawar.sop.http.resttemplate;
 
+import java.sql.Time;
 import java.util.Collections;
 
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -14,32 +16,36 @@ import org.springframework.web.client.RestTemplate;
 
 import com.pawar.sop.http.logginginterceptor.LoggingInterceptor;
 
-import okhttp3.logging.HttpLoggingInterceptor;
-
 @Configuration
 public class RestTemplateConfig {
+
 	@Bean
 	public RestTemplate restTemplate(ClientHttpRequestInterceptor loggingInterceptor) {
+		// Connection pool setup
 		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
 		connectionManager.setMaxTotal(100);
 		connectionManager.setDefaultMaxPerRoute(20);
 
-		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(15000)
-				.setConnectionRequestTimeout(3000).build();
+		// Timeout configuration
+		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(Timeout.ofSeconds(5))
+				.setResponseTimeout(Timeout.ofSeconds(15)) // Replaces socketTimeout
+				.setConnectionRequestTimeout(Timeout.ofSeconds(3)).build();
 
-		CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager)
+		// HttpClient 5 configuration
+		HttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager)
 				.setDefaultRequestConfig(requestConfig).build();
 
+		// RestTemplate with HttpClient 5 factory
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
-		// Add logging interceptor
-		restTemplate.setInterceptors(Collections.singletonList(loggingInterceptor));
+		// Add interceptors
+		restTemplate.getInterceptors().add(loggingInterceptor);
 
 		return restTemplate;
 	}
 
 	@Bean
 	public ClientHttpRequestInterceptor loggingInterceptor() {
-		return (ClientHttpRequestInterceptor) new LoggingInterceptor();
+		return new LoggingInterceptor(); // No cast needed
 	}
 }
