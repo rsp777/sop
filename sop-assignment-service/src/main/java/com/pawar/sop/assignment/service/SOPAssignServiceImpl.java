@@ -92,10 +92,10 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 
 	@Autowired
 	private InventoryWrapper inventoryWrapper;
-	
+
 	@Autowired
-	private SopConfigWrapper sopConfigWrapper; 
-	
+	private SopConfigWrapper sopConfigWrapper;
+
 	@Autowired
 	private SopEligibleItemsRepository sopEligibleItemsRepository;
 
@@ -323,6 +323,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		populateSopEligibleItemsDto(sopEligibleItemsDto, lpnDto, null);
 		return sopEligibleItemsDto;
 	}
+
 	private void populateSopEligibleItemsDto(SopEligibleItemsDto sopEligibleItemsDto, LpnDto lpnDto, ASNDto asnDto) {
 //		logger.info("ASN : {}, Lpn : {}, Item : {}", lpnDto.getAsn_brcd(), lpnDto.getLpn_name(),
 //				lpnDto.getItem().getItem_name());
@@ -354,7 +355,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		sopEligibleItemsDto.setLastUpdatedDttm(LocalDateTime.now());
 		sopEligibleItemsDto.setCreatedSource("sop-assignment-service");
 		sopEligibleItemsDto.setLastUpdatedSource("sop-assignment-service");
-	}	
+	}
 
 	@Override
 	public String createAssignment(AssignmentModel assignmentModel) throws ClientProtocolException, IOException {
@@ -418,7 +419,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 				logEntryDto.setAsn(sopEligibleItemsDto.getAsnBrcd());
 				if (sopEligibleLocationsDto.getAssignedNbrOfUpc() >= 0 && sopEligibleLocationsDto.getMaxNbrOfSku() > 0
 						&& (sopEligibleLocationsDto.getAssignedNbrOfUpc() < sopEligibleLocationsDto.getMaxNbrOfSku())) {
-					if (canAssign(sopEligibleLocationsDto, sopEligibleItemsDto)) {
+					if (canAssign(sopEligibleLocationsDto, sopEligibleItemsDto, logEntryDto, sopLogWrapper)) {
 						sopLogWrapper.updateBatchStatus(batchId, 45);
 
 						logger.info("Creating Assignment for UPC: {} and Location : {}", itemBrcd, locnBrcd);
@@ -470,18 +471,8 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		}
 	}
 
-	private int getEligibleUpcsCount(List<SopEligibleItemsDto> sopEligibleItemsDtos) {
-		Set<String> uniqueUpcs = new HashSet<>(); // Use a Set to store unique UPCs
-
-		for (SopEligibleItemsDto sopEligibleItemsDto : sopEligibleItemsDtos) {
-			String itemBrcd = sopEligibleItemsDto.getItem_brcd();
-			uniqueUpcs.add(itemBrcd); // Add UPC to the Set
-		}
-
-		return uniqueUpcs.size(); // Return the count of unique UPCs
-	}
-
-	private boolean canAssign(SopEligibleLocationsDto location, SopEligibleItemsDto item) {
+	private boolean canAssign(SopEligibleLocationsDto location, SopEligibleItemsDto item, LogEntryDto logEntryDto,
+			SopLogWrapper sopLogWrapper) throws ClientProtocolException, IOException {
 		// Parameter validation
 		if (location == null || item == null) {
 			logger.error("Invalid parameters: location={}, item={}", location, item);
@@ -492,6 +483,11 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		if (location.getLength() <= 0 || location.getWidth() <= 0 || item.getLength() <= 0 || item.getWidth() <= 0) {
 			logger.warn("Invalid dimensions - Location: {}{}, Item: {}{}", location.getLength(), location.getWidth(),
 					item.getLength(), item.getWidth());
+			String message = String.format("Invalid dimensions - Location: {}{}, Item: {}{}", location.getLength(),
+					location.getWidth(), item.getLength(), item.getWidth());
+			logEntryDto.setMessage(message);
+			logEntryDto.setCreatedAt(LocalDateTime.now());
+			sopLogWrapper.createLog(logEntryDto);
 			return false;
 		}
 
@@ -510,15 +506,23 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		// Check for empty location condition
 		if (assignedUpc == 0) {
 			boolean validEmptyLocation = maxSkuCapacity > 0; // Ensure location can accept items
-			boolean fitsDimensions = fitsInLocation(location, item);
+			boolean fitsDimensions = fitsInLocation(location, item, logEntryDto, sopLogWrapper);
 
 			logger.info("Empty location check - Valid: {}, Fits: {}", validEmptyLocation, fitsDimensions);
 			return validEmptyLocation && fitsDimensions;
+
+		} else {
+			String message = String.format("Location : %s already assigned", location.getLocn_brcd());
+			logEntryDto.setMessage(message);
+			logEntryDto.setCreatedAt(LocalDateTime.now());
+			sopLogWrapper.createLog(logEntryDto);
+			logger.info("Location : {} already assigned", location.getLocn_brcd());
+
 		}
 
 		// Occupied location checks
 		boolean hasCapacity = assignedUpc < maxSkuCapacity;
-		boolean fitsDimensions = fitsInLocation(location, item);
+		boolean fitsDimensions = fitsInLocation(location, item, logEntryDto, sopLogWrapper);
 		boolean meetsAssignmentCriteria = hasCapacity && fitsDimensions;
 
 		logger.info("Occupied location check - Capacity: {}/{} ({}), Fits: {}", assignedUpc, maxSkuCapacity,
@@ -527,8 +531,31 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		return meetsAssignmentCriteria;
 	}
 
-	private boolean fitsInLocation(SopEligibleLocationsDto location, SopEligibleItemsDto item) {
-		return location.getLength() >= item.getLength() && location.getWidth() >= item.getWidth()
-				&& location.getHeight() >= item.getHeight(); // Added height check if available
+	private boolean fitsInLocation(SopEligibleLocationsDto location, SopEligibleItemsDto item, LogEntryDto logEntryDto,
+			SopLogWrapper sopLogWrapper) throws ClientProtocolException, IOException {
+
+		boolean isfits = false;
+		if (location.getLength() >= item.getLength() && location.getWidth() >= item.getWidth()
+				&& location.getHeight() >= item.getHeight()) {
+			isfits = true;
+		} else {
+			String message = String.format("Invalid dimensions - Location: {}{}, Item: {}{}", location.getLength(),
+					location.getWidth(), item.getLength(), item.getWidth());
+			logEntryDto.setMessage(message);
+			logEntryDto.setCreatedAt(LocalDateTime.now());
+			sopLogWrapper.createLog(logEntryDto);
+		}
+		return isfits; // Added height check if available
+	}
+
+	private int getEligibleUpcsCount(List<SopEligibleItemsDto> sopEligibleItemsDtos) {
+		Set<String> uniqueUpcs = new HashSet<>(); // Use a Set to store unique UPCs
+
+		for (SopEligibleItemsDto sopEligibleItemsDto : sopEligibleItemsDtos) {
+			String itemBrcd = sopEligibleItemsDto.getItem_brcd();
+			uniqueUpcs.add(itemBrcd); // Add UPC to the Set
+		}
+
+		return uniqueUpcs.size(); // Return the count of unique UPCs
 	}
 }
