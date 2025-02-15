@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
@@ -48,9 +49,11 @@ public class LoggingInterceptor implements ClientHttpRequestInterceptor {
 			String body = truncateBody(StreamUtils.copyToString(response.getBody(), StandardCharsets.UTF_8));
 			logger.debug("Body: {}", body);
 		}
-
-		logger.info("HTTP {} → {} | Status: {} | Latency: {}ms", response.getStatusCode().value(),
-				response.getStatusCode().getReasonPhrase(), latency);
+		
+		HttpStatus httpStatus = (HttpStatus) response.getStatusCode();
+		
+		logger.info("HTTP {} → {} | Status: {} | Latency: {}ms", httpStatus.value(),
+				httpStatus.getReasonPhrase(), latency);
 	}
 
 	private String truncateBody(String body) {

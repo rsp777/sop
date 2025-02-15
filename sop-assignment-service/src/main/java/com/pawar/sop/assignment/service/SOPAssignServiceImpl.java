@@ -57,6 +57,7 @@ import com.pawar.sop.assignment.constants.AsnStatusConstants;
 import com.pawar.sop.assignment.constants.LpnFacilityStatusContants;
 import com.pawar.sop.assignment.controller.SopAssignmentController;
 import com.pawar.sop.assignment.log.wrapper.InventoryWrapper;
+import com.pawar.sop.assignment.log.wrapper.SopConfigWrapper;
 import com.pawar.sop.assignment.log.wrapper.SopLogWrapper;
 import com.pawar.sop.assignment.model.SopEligibleItems;
 import com.pawar.sop.assignment.repository.SopEligibleItemsRepository;
@@ -91,6 +92,10 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 
 	@Autowired
 	private InventoryWrapper inventoryWrapper;
+	
+	@Autowired
+	private SopConfigWrapper sopConfigWrapper; 
+	
 	@Autowired
 	private SopEligibleItemsRepository sopEligibleItemsRepository;
 
@@ -103,25 +108,6 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		this.sopConfigServiceConfiguration = sopConfigServiceConfiguration;
 		this.inventoryServiceConfiguration = inventoryServiceConfiguration;
 		this.asnServiceConfiguration = asnServiceConfiguration;
-
-	}
-
-	public Iterable<Location> findLocationByLocationRange(String fromLocation, String toLocation)
-			throws ClientProtocolException, IOException {
-
-		String url = sopConfigServiceConfiguration.getLocationRangeURL().replace("{fromLocation}", fromLocation)
-				.replace("{toLocation}", toLocation);
-		// LOCATION_RANGE_GET.replace("{fromLocation}",
-		// fromLocation).replace("{toLocation}", toLocation);
-		logger.info("Get Location Range URL : {}", url);
-		HttpGet request = new HttpGet(url);
-		HttpResponse response = httpClient.execute(request);
-		org.apache.http.HttpEntity entity = response.getEntity();
-		String json = EntityUtils.toString(entity);
-		List<Location> fetchedLocations = objectMapper.readValue(json, new TypeReference<List<Location>>() {
-		});
-
-		return fetchedLocations;
 
 	}
 
@@ -153,8 +139,8 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 
 	public List<SopEligibleItemsDto> fetchEligibleUpcs(String category) throws ClientProtocolException, IOException {
 		List<SopEligibleItemsDto> sopEligibleItemsDtos = new ArrayList<>();
-		List<ASNDto> fetchedASNDtos = fetchASNs(category);
-		List<LpnDto> fetchedLpnDtos = fetchLpns(category);
+		List<ASNDto> fetchedASNDtos = inventoryWrapper.fetchASNs(category);
+		List<LpnDto> fetchedLpnDtos = inventoryWrapper.fetchLpns(category);
 //		logger.info("fetchedASNDtos : {}", fetchedASNDtos);
 //		logger.info("fetchedLpnDtos : {}", fetchedLpnDtos);
 
@@ -203,75 +189,6 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 			}
 		}
 		return sopEligibleItemsDtos;
-	}
-
-	private SopEligibleItemsDto createSopEligibleItemsDto(LpnDto lpnDto, ASNDto asnDto) {
-		SopEligibleItemsDto sopEligibleItemsDto = new SopEligibleItemsDto();
-		populateSopEligibleItemsDto(sopEligibleItemsDto, lpnDto, asnDto);
-		return sopEligibleItemsDto;
-	}
-
-	private SopEligibleItemsDto createSopEligibleItemsDto(LpnDto lpnDto) {
-		SopEligibleItemsDto sopEligibleItemsDto = new SopEligibleItemsDto();
-		populateSopEligibleItemsDto(sopEligibleItemsDto, lpnDto, null);
-		return sopEligibleItemsDto;
-	}
-
-	private void populateSopEligibleItemsDto(SopEligibleItemsDto sopEligibleItemsDto, LpnDto lpnDto, ASNDto asnDto) {
-//		logger.info("ASN : {}, Lpn : {}, Item : {}", lpnDto.getAsn_brcd(), lpnDto.getLpn_name(),
-//				lpnDto.getItem().getItem_name());
-		sopEligibleItemsDto.setItem_id(lpnDto.getItem().getItem_id());
-		sopEligibleItemsDto.setItem_brcd(lpnDto.getItem().getItem_name());
-		sopEligibleItemsDto.setLength(lpnDto.getItem().getUnit_length());
-		sopEligibleItemsDto.setWidth(lpnDto.getItem().getUnit_width());
-		sopEligibleItemsDto.setHeight(lpnDto.getItem().getUnit_height());
-
-		if (asnDto != null) {
-//			logger.info("ASN : {}, Lpn : {}, Item : {}", asnDto.getAsnBrcd(), lpnDto.getLpn_name(),
-//					lpnDto.getItem().getItem_name());
-			sopEligibleItemsDto.setAsnBrcd(asnDto.getAsnBrcd());
-			sopEligibleItemsDto.setResvQty(getResvQty(asnDto));
-			sopEligibleItemsDto.setAsnInTranQty(getInTransitQty(asnDto));
-			sopEligibleItemsDto.setAsnRcvQty(getRcvQty(asnDto));
-			sopEligibleItemsDto.setAsnLpnInfo(getAsnLpnInfo(asnDto, lpnDto));
-			sopEligibleItemsDto.setCategory(getCategory(asnDto));
-		} else {
-//			logger.info("ASN : {}, Lpn : {}, Item : {}", lpnDto.getAsn_brcd(), lpnDto.getLpn_name(),
-//					lpnDto.getItem().getItem_name());
-//			logger.info("getResvQty(lpnDto) {}, item : {}", getResvQty(lpnDto), lpnDto.getItem().getItem_name());
-			sopEligibleItemsDto.setAsnLpnInfo(getAsnLpnInfo(null, lpnDto));
-			sopEligibleItemsDto.setResvQty(getResvQty(lpnDto));
-			sopEligibleItemsDto.setCategory(getCategory(lpnDto));
-		}
-
-		sopEligibleItemsDto.setCreatedDttm(LocalDateTime.now());
-		sopEligibleItemsDto.setLastUpdatedDttm(LocalDateTime.now());
-		sopEligibleItemsDto.setCreatedSource("sop-assignment-service");
-		sopEligibleItemsDto.setLastUpdatedSource("sop-assignment-service");
-	}
-
-	public List<ASNDto> fetchASNs(String category) throws ClientProtocolException, IOException {
-		String url = asnServiceConfiguration.getASNByCategoryURL().replace("{category}", category);
-		logger.info("Get ASN URL : {}", url);
-		HttpGet request = new HttpGet(url);
-		HttpResponse response = httpClient.execute(request);
-		org.apache.http.HttpEntity entity = response.getEntity();
-		String json = EntityUtils.toString(entity);
-		List<ASNDto> fetchedASNDtos = objectMapper.readValue(json, new TypeReference<List<ASNDto>>() {
-		});
-		return fetchedASNDtos;
-	}
-
-	public List<LpnDto> fetchLpns(String category) throws ClientProtocolException, IOException {
-		String url = inventoryServiceConfiguration.getGetLpnByCategoryURL().replace("{category}", category);
-		logger.info("Get LPN URL : {}", url);
-		HttpGet request = new HttpGet(url);
-		HttpResponse response = httpClient.execute(request);
-		org.apache.http.HttpEntity entity = response.getEntity();
-		String json = EntityUtils.toString(entity);
-		List<LpnDto> fetchedLpnDtos = objectMapper.readValue(json, new TypeReference<List<LpnDto>>() {
-		});
-		return fetchedLpnDtos;
 	}
 
 	public String getAsnLpnInfo(ASNDto asnDto, LpnDto lpnDto) {
@@ -395,6 +312,50 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		return category;
 	}
 
+	private SopEligibleItemsDto createSopEligibleItemsDto(LpnDto lpnDto, ASNDto asnDto) {
+		SopEligibleItemsDto sopEligibleItemsDto = new SopEligibleItemsDto();
+		populateSopEligibleItemsDto(sopEligibleItemsDto, lpnDto, asnDto);
+		return sopEligibleItemsDto;
+	}
+
+	private SopEligibleItemsDto createSopEligibleItemsDto(LpnDto lpnDto) {
+		SopEligibleItemsDto sopEligibleItemsDto = new SopEligibleItemsDto();
+		populateSopEligibleItemsDto(sopEligibleItemsDto, lpnDto, null);
+		return sopEligibleItemsDto;
+	}
+	private void populateSopEligibleItemsDto(SopEligibleItemsDto sopEligibleItemsDto, LpnDto lpnDto, ASNDto asnDto) {
+//		logger.info("ASN : {}, Lpn : {}, Item : {}", lpnDto.getAsn_brcd(), lpnDto.getLpn_name(),
+//				lpnDto.getItem().getItem_name());
+		sopEligibleItemsDto.setItem_id(lpnDto.getItem().getItem_id());
+		sopEligibleItemsDto.setItem_brcd(lpnDto.getItem().getItem_name());
+		sopEligibleItemsDto.setLength(lpnDto.getItem().getUnit_length());
+		sopEligibleItemsDto.setWidth(lpnDto.getItem().getUnit_width());
+		sopEligibleItemsDto.setHeight(lpnDto.getItem().getUnit_height());
+
+		if (asnDto != null) {
+//			logger.info("ASN : {}, Lpn : {}, Item : {}", asnDto.getAsnBrcd(), lpnDto.getLpn_name(),
+//					lpnDto.getItem().getItem_name());
+			sopEligibleItemsDto.setAsnBrcd(asnDto.getAsnBrcd());
+			sopEligibleItemsDto.setResvQty(getResvQty(asnDto));
+			sopEligibleItemsDto.setAsnInTranQty(getInTransitQty(asnDto));
+			sopEligibleItemsDto.setAsnRcvQty(getRcvQty(asnDto));
+			sopEligibleItemsDto.setAsnLpnInfo(getAsnLpnInfo(asnDto, lpnDto));
+			sopEligibleItemsDto.setCategory(getCategory(asnDto));
+		} else {
+//			logger.info("ASN : {}, Lpn : {}, Item : {}", lpnDto.getAsn_brcd(), lpnDto.getLpn_name(),
+//					lpnDto.getItem().getItem_name());
+//			logger.info("getResvQty(lpnDto) {}, item : {}", getResvQty(lpnDto), lpnDto.getItem().getItem_name());
+			sopEligibleItemsDto.setAsnLpnInfo(getAsnLpnInfo(null, lpnDto));
+			sopEligibleItemsDto.setResvQty(getResvQty(lpnDto));
+			sopEligibleItemsDto.setCategory(getCategory(lpnDto));
+		}
+
+		sopEligibleItemsDto.setCreatedDttm(LocalDateTime.now());
+		sopEligibleItemsDto.setLastUpdatedDttm(LocalDateTime.now());
+		sopEligibleItemsDto.setCreatedSource("sop-assignment-service");
+		sopEligibleItemsDto.setLastUpdatedSource("sop-assignment-service");
+	}	
+
 	@Override
 	public String createAssignment(AssignmentModel assignmentModel) throws ClientProtocolException, IOException {
 		String actionType = assignmentModel.getSopActionType();
@@ -430,7 +391,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		}
 
 		logger.info("Eligible UPCs : {}", sopEligibleItemsDtos);
-		List<SopEligibleLocationsDto> sopEligibleLocationsDtos = getEligibleLocations(category);
+		List<SopEligibleLocationsDto> sopEligibleLocationsDtos = sopConfigWrapper.getEligibleLocations(category);
 		logEntryDto.setModuleName("Eligible Locations module");
 		logEntryDto.setMessage("Total " + sopEligibleLocationsDtos.size() + " Eligible Locations found ");
 		logEntryDto.setCreatedAt(LocalDateTime.now());
@@ -465,7 +426,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 								locnBrcd);
 						logEntryDto.setMessage(message);
 						sopLogWrapper.createLog(logEntryDto);
-						createInventory(itemBrcd, locnBrcd);
+						inventoryWrapper.createInventory(itemBrcd, locnBrcd);
 						message = String.format("Created Assignment for UPC: %s and Location : %s", itemBrcd, locnBrcd);
 						logEntryDto.setCreatedAt(LocalDateTime.now());
 						logEntryDto.setMessage(message);
@@ -474,7 +435,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 						sopEligibleLocationsDto.setAssignedNbrOfUpc(count);
 						sopEligibleLocationsDto.setLastUpdatedDttm(LocalDateTime.now());
 						sopEligibleLocationsDto.setLastUpdatedSource("assignment-service");
-						updateSopEligibleLocations(sopEligibleLocationsDto);
+						sopConfigWrapper.updateSopEligibleLocations(sopEligibleLocationsDto);
 						logger.info("Location updated with ");
 					} else {
 						String message = String.format(FAILED_TO_CREATED_ASSIGNMENT + " : Check Item Dimensions: %s",
@@ -570,73 +531,4 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		return location.getLength() >= item.getLength() && location.getWidth() >= item.getWidth()
 				&& location.getHeight() >= item.getHeight(); // Added height check if available
 	}
-
-	private void updateSopEligibleLocations(SopEligibleLocationsDto sopEligibleLocationsDto)
-			throws ClientProtocolException, IOException {
-		String url = sopConfigServiceConfiguration.getEligibleLocationsUpdateURL();
-		logger.info("ELIGIBILE_LOCATIONS_UPDATE : {}", url);
-		String sopEligibleLocationsJson = objectMapper.writeValueAsString(sopEligibleLocationsDto);
-		logger.info("sopEligibleLocationsJson : " + sopEligibleLocationsJson);
-		HttpHeaders httpHeaders = new HttpHeaders();
-
-		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-		HttpPut httpPut = new HttpPut(url);
-		StringEntity entity = new StringEntity(sopEligibleLocationsJson, ContentType.APPLICATION_JSON);
-		httpPut.setEntity(entity);
-		// HttpEntity<String> httpEntity = new HttpEntity<String>(json, httpHeaders);
-
-		httpClient.execute(httpPut);
-		// logger.info("entity : "+entity);
-//		String json2 = EntityUtils.toString(entity);
-		// RestTemplate restTemplate = new RestTemplate();
-		// String response2 = restTemplate.postForObject(url, httpEntity, String.class);
-		// String response = restTemplate.exchange(url, null, httpEntity, String.class);
-
-		logger.info("Response SopEligibleLocations updated");
-
-	}
-
-	public void createInventory(String itemName, String locnBrcd) throws ClientProtocolException, IOException {
-		JSONObject inventory_json = new JSONObject();
-		JSONObject item = new JSONObject();
-		JSONObject location = new JSONObject();
-		inventory_json.put("item", itemName);
-		inventory_json.put("location", locnBrcd);
-		String json = inventory_json.toString();
-
-		logger.info("json ; " + json);
-
-		String url = inventoryServiceConfiguration.getCreateInventoryURL();
-		logger.info("CREATE_INVENTORY : {}", url);
-
-		HttpHeaders httpHeaders = new HttpHeaders();
-
-		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-		HttpEntity<String> httpEntity = new HttpEntity<String>(json, httpHeaders);
-		RestTemplate restTemplate = new RestTemplate();
-		String response = restTemplate.postForObject(url, httpEntity, String.class);
-		logger.info(response);
-	}
-
-	public List<SopEligibleLocationsDto> getEligibleLocations(String category)
-			throws ClientProtocolException, IOException {
-
-		String url = sopConfigServiceConfiguration.getEligibleLocationsURL().replace("{category}", category);
-		logger.info("ELIGIBILE_LOCATIONS_GET : {}", url);
-		// "http://localhost:8089/sop-config-service/eligible-locations/category/" +
-		// category;
-		HttpGet request = new HttpGet(url);
-		HttpResponse response = httpClient.execute(request);
-		org.apache.http.HttpEntity entity = response.getEntity();
-		String json = EntityUtils.toString(entity);
-		List<SopEligibleLocationsDto> fetchedSopEligibleLocationsDtos = objectMapper.readValue(json,
-				new TypeReference<List<SopEligibleLocationsDto>>() {
-				});
-
-		logger.info("fetchedSopEligibleLocationsDtos : {}", fetchedSopEligibleLocationsDtos);
-		return fetchedSopEligibleLocationsDtos;
-
-	}
-
 }
