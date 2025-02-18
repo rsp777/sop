@@ -30,7 +30,7 @@ public class SopEligibleItems {
 
 	@JsonProperty("item_id")
 	@Column(name = "item_id")
-	private int item_id;
+	private int itemId;
 
 	@JsonProperty("item_brcd")
 	@Column(name = "item_brcd")
@@ -76,6 +76,10 @@ public class SopEligibleItems {
 	@Column(name = "height")
 	private float height;
 
+	@JsonProperty("isAssigned")
+	@Column(name = "is_assigned")
+	private String isAssigned;
+
 	@JsonInclude(value = Include.CUSTOM)
 	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
 	@JsonProperty("createdDttm")
@@ -102,7 +106,7 @@ public class SopEligibleItems {
 	public SopEligibleItems(SopEligibleItemsDto sopEligibleItemsDto) {
 		super();
 		this.sopEligibleItemsId = sopEligibleItemsDto.getSopEligibleItemsId();
-		this.item_id = sopEligibleItemsDto.getItem_id();
+		this.itemId = sopEligibleItemsDto.getItem_id();
 		this.itemBrcd = sopEligibleItemsDto.getItem_brcd();
 		this.asnBrcd = sopEligibleItemsDto.getAsnBrcd();
 		this.asnLpnInfo = sopEligibleItemsDto.getAsnLpnInfo();
@@ -114,19 +118,19 @@ public class SopEligibleItems {
 		this.length = sopEligibleItemsDto.getLength();
 		this.width = sopEligibleItemsDto.getWidth();
 		this.height = sopEligibleItemsDto.getHeight();
+		this.isAssigned = sopEligibleItemsDto.getIsAssigned();
 		this.createdDttm = sopEligibleItemsDto.getCreatedDttm();
 		this.lastUpdatedDttm = sopEligibleItemsDto.getLastUpdatedDttm();
 		this.createdSource = sopEligibleItemsDto.getCreatedSource();
 		this.lastUpdatedSource = sopEligibleItemsDto.getLastUpdatedSource();
 	}
 
-	public SopEligibleItems(Integer sopEligibleItemsId, int item_id, String itemBrcd, String asnBrcd, String asnLpnInfo,
+	public SopEligibleItems(Integer sopEligibleItemsId, int itemId, String itemBrcd, String asnBrcd, String asnLpnInfo,
 			String locnInfo, int asnInTranQty, int asnRcvQty, int resvQty, String category, float length, float width,
-			float height, LocalDateTime createdDttm, LocalDateTime lastUpdatedDttm, String createdSource,
-			String lastUpdatedSource) {
-		super();
+			float height, String isAssigned, LocalDateTime createdDttm, LocalDateTime lastUpdatedDttm,
+			String createdSource, String lastUpdatedSource) {
 		this.sopEligibleItemsId = sopEligibleItemsId;
-		this.item_id = item_id;
+		this.itemId = itemId;
 		this.itemBrcd = itemBrcd;
 		this.asnBrcd = asnBrcd;
 		this.asnLpnInfo = asnLpnInfo;
@@ -138,6 +142,7 @@ public class SopEligibleItems {
 		this.length = length;
 		this.width = width;
 		this.height = height;
+		this.isAssigned = isAssigned;
 		this.createdDttm = createdDttm;
 		this.lastUpdatedDttm = lastUpdatedDttm;
 		this.createdSource = createdSource;
@@ -152,12 +157,12 @@ public class SopEligibleItems {
 		this.sopEligibleItemsId = sopEligibleItemsId;
 	}
 
-	public int getItem_id() {
-		return item_id;
+	public int getItemId() {
+		return itemId;
 	}
 
-	public void setItem_id(int item_id) {
-		this.item_id = item_id;
+	public void setItemId(int item_id) {
+		this.itemId = item_id;
 	}
 
 	public String getItemBrcd() {
@@ -175,8 +180,6 @@ public class SopEligibleItems {
 	public void setAsnBrcd(String asnBrcd) {
 		this.asnBrcd = asnBrcd;
 	}
-
-	
 
 	public String getAsnLpnInfo() {
 		return asnLpnInfo;
@@ -250,6 +253,14 @@ public class SopEligibleItems {
 		this.height = height;
 	}
 
+	public String getIsAssigned() {
+		return isAssigned;
+	}
+
+	public void setIsAssigned(String isAssigned) {
+		this.isAssigned = isAssigned;
+	}
+
 	public LocalDateTime getCreatedDttm() {
 		return createdDttm;
 	}
@@ -281,15 +292,41 @@ public class SopEligibleItems {
 	public void setLastUpdatedSource(String lastUpdatedSource) {
 		this.lastUpdatedSource = lastUpdatedSource;
 	}
+	
+//	public SopEligibleItemsDto convertEntityToDto(SopEligibleItems sopEligibleItem) {
+//		
+//	}
 
 	@Override
 	public String toString() {
-		return "SopEligibleItems [sopEligibleItemsId=" + sopEligibleItemsId + ", item_id=" + item_id + ", itemBrcd="
-				+ itemBrcd + ", asnBrcd=" + asnBrcd + ", asnLpnInfo=" + asnLpnInfo + ", locnInfo=" + locnInfo
+		return "SopEligibleItems [sopEligibleItemsId=" + sopEligibleItemsId + ", itemId=" + itemId + ", itemBrcd="
+				+ itemBrcd + ", asnBrcd=" + asnBrcd + ", aasnLpnInfo=" + asnLpnInfo + ", locnInfo=" + locnInfo
 				+ ", asnInTranQty=" + asnInTranQty + ", asnRcvQty=" + asnRcvQty + ", resvQty=" + resvQty + ", category="
-				+ category + ", length=" + length + ", width=" + width + ", height=" + height + ", createdDttm="
-				+ createdDttm + ", lastUpdatedDttm=" + lastUpdatedDttm + ", createdSource=" + createdSource
-				+ ", lastUpdatedSource=" + lastUpdatedSource + "]";
+				+ category + ", length=" + length + ", width=" + width + ", height=" + height + ", isAssigned="
+				+ isAssigned + ", createdDttm=" + createdDttm + ", lastUpdatedDttm=" + lastUpdatedDttm
+				+ ", createdSource=" + createdSource + ", lastUpdatedSource=" + lastUpdatedSource + "]";
 	}
+
+	public SopEligibleItemsDto convertEntityToDto(SopEligibleItems sopEligibleItem) {
+		SopEligibleItemsDto sopEligibleItemsDto = new SopEligibleItemsDto();
+		sopEligibleItemsDto.setSopEligibleItemsId(sopEligibleItem.getSopEligibleItemsId());
+		sopEligibleItemsDto.setItem_id(sopEligibleItem.getItemId());
+		sopEligibleItemsDto.setItem_brcd(sopEligibleItem.getItemBrcd());
+		sopEligibleItemsDto.setAsnBrcd(sopEligibleItem.getAsnBrcd());
+		sopEligibleItemsDto.setAsnLpnInfo(sopEligibleItem.getAsnLpnInfo());
+		sopEligibleItemsDto.setLocnInfo(sopEligibleItem.getLocnInfo());
+		sopEligibleItemsDto.setAsnInTranQty(sopEligibleItem.getAsnInTranQty());
+		sopEligibleItemsDto.setAsnRcvQty(sopEligibleItem.getAsnRcvQty());
+		sopEligibleItemsDto.setResvQty(sopEligibleItem.getResvQty());
+		sopEligibleItemsDto.setCategory(sopEligibleItem.getCategory());
+		sopEligibleItemsDto.setCategory(sopEligibleItem.getCategory());
+		sopEligibleItemsDto.setIsAssigned(sopEligibleItem.getIsAssigned());
+		sopEligibleItemsDto.setCreatedDttm(sopEligibleItem.getCreatedDttm());
+		sopEligibleItemsDto.setLastUpdatedDttm(sopEligibleItem.getLastUpdatedDttm());
+		sopEligibleItemsDto.setCreatedSource(sopEligibleItem.getCreatedSource());
+		sopEligibleItemsDto.setLastUpdatedSource(sopEligibleItem.getLastUpdatedSource());
+		return sopEligibleItemsDto;
+	}
+
 
 }

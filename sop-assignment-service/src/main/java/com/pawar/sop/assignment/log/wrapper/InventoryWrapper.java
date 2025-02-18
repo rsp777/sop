@@ -32,7 +32,7 @@ import com.pawar.sop.http.service.HttpService;
 @Component
 public class InventoryWrapper {
 
-	private final static Logger logger = LoggerFactory.getLogger(SopLogWrapper.class);
+	private final static Logger logger = LoggerFactory.getLogger(InventoryWrapper.class);
 
 	private final AsnServiceConfiguration asnServiceConfiguration;
 	private final InventoryServiceConfiguration inventoryServiceConfiguration;
@@ -63,12 +63,12 @@ public class InventoryWrapper {
 		logger.info("URL : {}", url);
 		try {
 			ResponseEntity<String> response = httpService.restCall(url, HttpMethod.POST, json, null);
-			logger.info("Response : {}", response.getBody());
-			if (!response.getBody().contains("404")) {
-				isExists = true;
-			} else {
+			logger.info("Response : {}", response);
 
-			}
+//			logger.info("Response Body : {}", response.getBody());
+			if (!response.toString().contains("404")) {
+				isExists = true;
+			} 
 			logger.info("isExists : " + isExists);
 			return isExists;
 		} catch (RestClientException e) {
@@ -80,7 +80,7 @@ public class InventoryWrapper {
 		JSONObject inventory_json = new JSONObject();
 		JSONObject inventory = new JSONObject();
 		JSONObject item = new JSONObject();
-		item.put("item_name", itemName);
+		item.put("itemName", itemName);
 		inventory.put("item", item);
 		if (locnBrcd != null) {
 			inventory.put("location", locnBrcd);
@@ -115,6 +115,7 @@ public class InventoryWrapper {
 		String url = inventoryServiceConfiguration.getGetLpnByCategoryURL().replace("{category}", category);
 		logger.info("Get LPN URL : {}", url);
 		String json = httpService.restCall(url, HttpMethod.GET, null, null).getBody().toString();
+		logger.info(json);
 		List<LpnDto> fetchedLpnDtos = objectMapper.readValue(json, new TypeReference<List<LpnDto>>() {
 		});
 		return fetchedLpnDtos;
