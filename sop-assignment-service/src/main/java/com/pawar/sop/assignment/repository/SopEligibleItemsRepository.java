@@ -23,7 +23,8 @@ public interface SopEligibleItemsRepository extends JpaRepository<SopEligibleIte
 	
 	@Transactional
 	void deleteByItemId(int item_id);
-	List<SopEligibleItems> findByIsAssigned(String string);
+	List<SopEligibleItems> findByIsAssigned(String isAssigned);
+	List<SopEligibleItems> findByCategoryAndIsAssigned(String category, String isAssigned);
 
 	
 }

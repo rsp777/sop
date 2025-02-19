@@ -117,7 +117,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 	@Override
 	public List<SopEligibleItemsDto> getEligibleUpcs(String category, LogEntryDto logEntryDto)
 			throws ClientProtocolException, IOException {
-		List<SopEligibleItemsDto> dbSopEligibleItemsDtos = getEligibleUpcsFromDb();
+		List<SopEligibleItemsDto> dbSopEligibleItemsDtos = getEligibleUpcsFromDb(category);
 		if (dbSopEligibleItemsDtos.isEmpty()) {
 			List<SopEligibleItemsDto> sopEligibleItemsDtos = fetchEligibleUpcs(category, logEntryDto);
 			logger.info("Eligible Items : {}", sopEligibleItemsDtos);
@@ -128,11 +128,11 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		return dbSopEligibleItemsDtos;
 	}
 
-	private List<SopEligibleItemsDto> getEligibleUpcsFromDb() {
+	private List<SopEligibleItemsDto> getEligibleUpcsFromDb(String category) {
 
 		List<SopEligibleItemsDto> sopEligibleItemsDtos = new ArrayList<>();
 		SopEligibleItemsDto sopEligibleItemsDto = new SopEligibleItemsDto();
-		List<SopEligibleItems> sopEligibleItems = sopEligibleItemsRepository.findByIsAssigned("N");
+		List<SopEligibleItems> sopEligibleItems = sopEligibleItemsRepository.findByCategoryAndIsAssigned(category,"N");
 
 		if (!sopEligibleItems.isEmpty()) {
 			for (SopEligibleItems sopEligibleItem : sopEligibleItems) {
