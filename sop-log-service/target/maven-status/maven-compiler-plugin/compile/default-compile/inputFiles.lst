@@ -4,6 +4,8 @@ C:\Users\Ravi\spring_practice\sop\sop-log-service\src\main\java\com\pawar\sop\lo
 C:\Users\Ravi\spring_practice\sop\sop-log-service\src\main\java\com\pawar\sop\log\exception\package-info.java
 C:\Users\Ravi\spring_practice\sop\sop-log-service\src\main\java\com\pawar\sop\log\model\LogEntry.java
 C:\Users\Ravi\spring_practice\sop\sop-log-service\src\main\java\com\pawar\sop\log\service\LogEntryService.java
+C:\Users\Ravi\spring_practice\sop\sop-log-service\src\main\java\com\pawar\sop\log\model\SopActionType.java
+C:\Users\Ravi\spring_practice\sop\sop-log-service\src\main\java\com\pawar\sop\log\repository\SopActionTypeRepository.java
 C:\Users\Ravi\spring_practice\sop\sop-log-service\src\main\java\com\pawar\sop\log\service\package-info.java
 C:\Users\Ravi\spring_practice\sop\sop-log-service\src\main\java\com\pawar\sop\log\exception\GlobalExceptionHandler.java
 C:\Users\Ravi\spring_practice\sop\sop-log-service\src\main\java\com\pawar\sop\log\repository\BatchRepository.java

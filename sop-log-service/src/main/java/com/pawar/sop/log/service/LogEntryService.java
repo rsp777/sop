@@ -20,6 +20,7 @@ import com.pawar.sop.log.model.Batch;
 import com.pawar.sop.log.model.LogEntry;
 import com.pawar.sop.log.repository.BatchRepository;
 import com.pawar.sop.log.repository.LogRepository;
+import com.pawar.sop.log.repository.SopActionTypeRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -33,6 +34,9 @@ public class LogEntryService {
 
 	@Autowired
 	private BatchRepository batchRepository;
+	
+	@Autowired
+	private SopActionTypeRepository sopActionTypeRepository;
 
 	@Async
 	public void saveLog(LogEntry logEntry) {
@@ -43,6 +47,7 @@ public class LogEntryService {
 
 	@Transactional
 	public String createNewBatch(String actionType) throws ParseException {
+//		sopActionTypeRepository.findByActionType(actionType);
 		 String prefix = actionType.equalsIgnoreCase("ASSIGN") ? "BTA-" : "BTU-";
 
 		    // Get the current date in yyyyMMdd format
