@@ -26,12 +26,13 @@ import com.pawar.inventory.entity.LpnDto;
 import com.pawar.sop.assignment.config.AsnServiceConfiguration;
 import com.pawar.sop.assignment.config.InventoryServiceConfiguration;
 import com.pawar.sop.assignment.httputils.HttpUtils;
+import com.pawar.sop.http.exception.RestClientException;
 import com.pawar.sop.http.service.HttpService;
 
 @Component
 public class InventoryWrapper {
 
-	private final static Logger logger = LoggerFactory.getLogger(SopLogWrapper.class);
+	private final static Logger logger = LoggerFactory.getLogger(InventoryWrapper.class);
 
 	private final AsnServiceConfiguration asnServiceConfiguration;
 	private final InventoryServiceConfiguration inventoryServiceConfiguration;
@@ -39,13 +40,13 @@ public class InventoryWrapper {
 	private final HttpService httpService;
 	private final ObjectMapper objectMapper;
 
-	
 //	public InventoryWrapper(InventoryServiceConfiguration inventoryServiceConfiguration, HttpUtils httpUtils) {
 //		this.inventoryServiceConfiguration = inventoryServiceConfiguration;
 //		this.httpUtils = httpUtils;
 //	}
-	
-	public InventoryWrapper(AsnServiceConfiguration asnServiceConfiguration,InventoryServiceConfiguration inventoryServiceConfiguration, HttpUtils httpUtils,HttpService httpService) {
+
+	public InventoryWrapper(AsnServiceConfiguration asnServiceConfiguration,
+			InventoryServiceConfiguration inventoryServiceConfiguration, HttpUtils httpUtils, HttpService httpService) {
 		this.asnServiceConfiguration = asnServiceConfiguration;
 		this.inventoryServiceConfiguration = inventoryServiceConfiguration;
 		this.httpUtils = httpUtils;
@@ -53,35 +54,39 @@ public class InventoryWrapper {
 		objectMapper = new ObjectMapper();
 		objectMapper.registerModule(new JavaTimeModule());
 	}
-	
+
 	public boolean checkActiveInventory(String itemName) {
 		boolean isExists = false;
-		String json = createInventoryJson(itemName,null);
+		String json = createInventoryJson(itemName, null);
 		logger.info("check Active Inventory Payload : " + json);
 		String url = inventoryServiceConfiguration.getCheckActiveInventoryURL();
 		logger.info("URL : {}", url);
-		ResponseEntity<String> response = httpService.restCall(url, HttpMethod.POST, json, null);
-		logger.info("Response : {}",response.getBody());
-		if (!response.getBody().contains("404")) {
-			isExists = true;
+		try {
+			ResponseEntity<String> response = httpService.restCall(url, HttpMethod.POST, json, null);
+			logger.info("Response : {}", response);
+
+//			logger.info("Response Body : {}", response.getBody());
+			if (!response.toString().contains("404")) {
+				isExists = true;
+			} 
+			logger.info("isExists : " + isExists);
+			return isExists;
+		} catch (RestClientException e) {
+			return isExists;
 		}
-		else {
-			
-		}
-		logger.info("isExists : " + isExists);
-		return isExists;
 	}
 
-	private String createInventoryJson(String itemName,String locnBrcd) {
+	private String createInventoryJson(String itemName, String locnBrcd) {
 		JSONObject inventory_json = new JSONObject();
 		JSONObject inventory = new JSONObject();
 		JSONObject item = new JSONObject();
-		item.put("item_name", itemName);
-		if (locnBrcd!=null) {
-			item.put("location", locnBrcd);
+		item.put("itemName", itemName);
+		inventory.put("item", item);
+		if (locnBrcd != null) {
+			inventory.put("location", locnBrcd);
 
 		}
-		inventory.put("item", item);
+		
 		inventory_json.put("inventory", inventory);
 		logger.info("{}", inventory_json);
 		String json = inventory_json.toString();
@@ -94,7 +99,7 @@ public class InventoryWrapper {
 		String url = inventoryServiceConfiguration.getCreateInventoryURL();
 		logger.info("CREATE_INVENTORY : {}", url);
 		String response = httpService.restCall(url, HttpMethod.POST, json, null).getBody().toString();
-		logger.info(response);		
+		logger.info(response);
 	}
 
 	public List<ASNDto> fetchASNs(String category) throws JsonMappingException, JsonProcessingException {
@@ -110,6 +115,7 @@ public class InventoryWrapper {
 		String url = inventoryServiceConfiguration.getGetLpnByCategoryURL().replace("{category}", category);
 		logger.info("Get LPN URL : {}", url);
 		String json = httpService.restCall(url, HttpMethod.GET, null, null).getBody().toString();
+		logger.info(json);
 		List<LpnDto> fetchedLpnDtos = objectMapper.readValue(json, new TypeReference<List<LpnDto>>() {
 		});
 		return fetchedLpnDtos;

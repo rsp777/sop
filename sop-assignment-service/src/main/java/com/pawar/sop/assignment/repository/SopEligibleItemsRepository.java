@@ -5,14 +5,26 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.pawar.sop.assignment.model.SopEligibleItems;
+
+import jakarta.transaction.Transactional;
+
 import java.util.List;
+import java.util.Optional;
 
 
 
 @Repository
 public interface SopEligibleItemsRepository extends JpaRepository<SopEligibleItems, Integer> {
 	
-	List<SopEligibleItems> findByAsnBrcdAndItemBrcd(String asnBrcd,String itemBrcd);
+	Optional<SopEligibleItems> findByAsnBrcdAndItemBrcd(String asnBrcd,String itemBrcd);
+	List<SopEligibleItems> findByItemBrcd(String itemBrcd);
+
+	
+	
+	@Transactional
+	void deleteByItemId(int item_id);
+	List<SopEligibleItems> findByIsAssigned(String isAssigned);
+	List<SopEligibleItems> findByCategoryAndIsAssigned(String category, String isAssigned);
 
 	
 }

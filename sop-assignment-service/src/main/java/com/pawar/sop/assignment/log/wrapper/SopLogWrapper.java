@@ -67,7 +67,7 @@ public class SopLogWrapper {
 		String url = sopLogServiceConfiguration.getCreateLogURL();
 		logger.info("Create Log URL : {}", url);
 		logger.info("Writing Log for Batch : {}", logEntryDto.getBatchId());
-		httpUtils.restCall(url, HttpMethod.POST, logEntryDto,null);
+		httpService.restCall(url, HttpMethod.POST, logEntryDto,null);
 		logger.info("Written Log for Batch : {}", logEntryDto.getBatchId());
 	}
 
