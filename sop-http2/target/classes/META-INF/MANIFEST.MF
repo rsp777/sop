@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Build-Jdk-Spec: 21
 Implementation-Title: sop-http2
-Implementation-Version: Dev_v1.3
+Implementation-Version: Dev_v1.6
 Created-By: Maven Integration for Eclipse
 
