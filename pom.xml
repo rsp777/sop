@@ -21,7 +21,7 @@
 		<module>sop-asn-service</module>
 		<module>sop-properties</module>
 		<module>sop-log-service</module>
-		
+
 	</modules>
 	<dependencyManagement>
 		<dependencies>
@@ -43,6 +43,16 @@
 			<dependency>
 				<groupId>com.pawar.inventory</groupId>
 				<artifactId>sop-http2</artifactId>
+				<version>Dev_v1.6</version>
+			</dependency>
+			<dependency>
+				<groupId>com.pawar.inventory</groupId>
+				<artifactId>sop-log-service</artifactId>
+				<version>Dev_v1.6</version>
+			</dependency>
+			<dependency>
+				<groupId>com.pawar.todo</groupId>
+				<artifactId>common</artifactId>
 				<version>Dev_v1.6</version>
 			</dependency>
 		</dependencies>
