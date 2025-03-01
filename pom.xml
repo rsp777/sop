@@ -50,11 +50,6 @@
 				<artifactId>sop-log-service</artifactId>
 				<version>Dev_v1.6</version>
 			</dependency>
-			<dependency>
-				<groupId>com.pawar.todo</groupId>
-				<artifactId>common</artifactId>
-				<version>Dev_v1.6</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<repositories>
