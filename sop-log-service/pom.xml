@@ -12,7 +12,7 @@
 	<groupId>com.pawar.inventory</groupId>
 	<artifactId>sop-log-service</artifactId>
 	<version>Dev_v1.6</version>
-	<name>Archetype - sop-log-service</name>
+	<name>sop-log-service</name>
 	<url>http://maven.apache.org</url>
 
 	<dependencies>
