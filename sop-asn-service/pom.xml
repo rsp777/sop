@@ -18,7 +18,7 @@
 	
 	<groupId>com.github.rsp777</groupId>
 	<artifactId>sop-asn-service</artifactId>
-	<version>Dev-v1.6</version>
+	<version>Dev_v1.6</version>
 	<packaging>jar</packaging>
 
 	<dependencies>

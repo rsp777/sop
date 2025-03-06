@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pawar.inventory.entity.ASNDto;
+import com.pawar.sop.asnincoming.config.InventoryServiceConfiguration;
 
 import jakarta.persistence.EntityManager;
 
@@ -34,9 +35,10 @@ public class IncomingASNRepositoryImpl implements IncomingASNRepository{
 	private EntityManager entityManager;
 	private final HttpClient httpClient;
 	private final ObjectMapper objectMapper;
-
+	private InventoryServiceConfiguration inventoryServiceConfiguration;
 	
-	public IncomingASNRepositoryImpl(EntityManager entityManager) {
+	public IncomingASNRepositoryImpl(InventoryServiceConfiguration inventoryServiceConfiguration, EntityManager entityManager) {
+		this.inventoryServiceConfiguration = inventoryServiceConfiguration;
 		this.entityManager = entityManager;
 		httpClient = HttpClients.createDefault();
 		objectMapper = new ObjectMapper();
@@ -61,7 +63,7 @@ public class IncomingASNRepositoryImpl implements IncomingASNRepository{
 	}
 
 	public <T> String fetch(String serviceName,String category) throws ClientProtocolException, IOException {
-		String url = getUrl(serviceName) + category;
+		String url = inventoryServiceConfiguration.getInvnAsnListCategoryURL() + category;
 		String json = restGetCall(url);
 		return json;
 	}
@@ -92,15 +94,4 @@ public class IncomingASNRepositoryImpl implements IncomingASNRepository{
 		return json;
 	}
 
-	public <T> String getUrl(T serviceName) {
-		if (serviceName != null) {
-			String url = "http://localhost:8085/" + serviceName + "/list/category/";
-			return url;
-		}
-		return null;
-	}
-	
-	
-	
-	
 }
