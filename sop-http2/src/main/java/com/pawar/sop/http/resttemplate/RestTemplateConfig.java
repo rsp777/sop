@@ -14,10 +14,20 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import com.pawar.sop.http.config.TimeoutConfig;
 import com.pawar.sop.http.logginginterceptor.LoggingInterceptor;
 
 @Configuration
 public class RestTemplateConfig {
+
+	
+	private final TimeoutConfig timeoutConfig;
+	
+	
+	
+	public RestTemplateConfig(TimeoutConfig timeoutConfig) {
+		this.timeoutConfig = timeoutConfig;
+	}
 
 	@Bean
 	public RestTemplate restTemplate(ClientHttpRequestInterceptor loggingInterceptor) {
@@ -27,9 +37,9 @@ public class RestTemplateConfig {
 		connectionManager.setDefaultMaxPerRoute(20);
 
 		// Timeout configuration
-		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(Timeout.ofSeconds(5))
-				.setResponseTimeout(Timeout.ofSeconds(15)) // Replaces socketTimeout
-				.setConnectionRequestTimeout(Timeout.ofSeconds(3)).build();
+		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(Timeout.ofSeconds(timeoutConfig.getConnectionTimeout()))
+				.setResponseTimeout(Timeout.ofSeconds(timeoutConfig.getResponseTimeout())) // Replaces socketTimeout
+				.setConnectionRequestTimeout(Timeout.ofSeconds(timeoutConfig.getConnectionRequestTimeout())).build();
 
 		// HttpClient 5 configuration
 		HttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager)

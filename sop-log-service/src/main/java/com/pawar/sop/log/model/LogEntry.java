@@ -46,7 +46,7 @@ public class LogEntry {
     @Column(name = "log_level")
     private String logLevel;
 
-    @Column(nullable = false)
+    @Column(name = "message", length = 5000,nullable = false)
     private String message;
 
     @Column(columnDefinition = "json")

@@ -1,72 +1,75 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.5</version>
-	</parent>
-	<groupId>com.pawar.inventory</groupId>
-	<artifactId>sop</artifactId>
-	<version>Dev_v1.3</version>
-	<packaging>pom</packaging>
-	<name>SOP</name>
-	<url>http://maven.apache.org</url>
-	<modules>
-		<module>sop-http2</module>
-		<module>sop-config-service</module>
-		<module>sop-assignment-service</module>
-		<module>sop-asn-service</module>
-		<module>sop-properties</module>
-		<module>sop-log-service</module>
-		
-	</modules>
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>com.pawar.inventory</groupId>
-				<artifactId>sop-config-service</artifactId>
-				<version>0.0.1-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>com.pawar.inventory</groupId>
-				<artifactId>sop-assignment-service</artifactId>
-				<version>0.0.1-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>com.pawar.inventory</groupId>
-				<artifactId>sop-asn-service</artifactId>
-				<version>0.0.1-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>com.pawar.inventory</groupId>
-				<artifactId>sop-http2</artifactId>
-				<version>Dev_v1.3</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-	<repositories>
-		<!--<repository>
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.1.5</version>
+  </parent>
+  <groupId>com.pawar.inventory</groupId>
+  <artifactId>sop</artifactId>
+  <version>Dev_v2.0</version>
+  <packaging>pom</packaging>
+  <name>SOP</name>
+  <url>http://maven.apache.org</url>
+  <modules>
+    <module>sop-http2</module>
+    <module>sop-config-service</module>
+    <module>sop-assignment-service</module>
+    <module>sop-properties</module>
+    <module>sop-log-service</module>
+    <module>sop-unassignment-service</module>
+    <module>sop-realtime-assignment-service</module>
+    <module>sop-realtime-unassignment-service</module>
+  </modules>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.pawar.inventory</groupId>
+        <artifactId>sop-config-service</artifactId>
+        <version>Dev_v1.6</version>
+      </dependency>
+      <dependency>
+        <groupId>com.pawar.inventory</groupId>
+        <artifactId>sop-assignment-service</artifactId>
+        <version>Dev_v1.6</version>
+      </dependency>
+      <dependency>
+        <groupId>com.pawar.inventory</groupId>
+        <artifactId>sop-asn-service</artifactId>
+        <version>Dev_v1.6</version>
+      </dependency>
+      <dependency>
+        <groupId>com.pawar.inventory</groupId>
+        <artifactId>sop-http2</artifactId>
+        <version>Dev_v1.6</version>
+      </dependency>
+      <dependency>
+        <groupId>com.pawar.inventory</groupId>
+        <artifactId>sop-log-service</artifactId>
+        <version>Dev_v1.6</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <repositories>
+    <!--<repository>
 			<id>my-repo-id</id>
 			<url>http://localhost:8081/repository/maven-snapshots/</url>
 		</repository>-->
-		<repository>
-			<id>github</id>
-			<name>GitHub OWNER Apache Maven Packages</name>
-			<url>https://maven.pkg.github.com/rsp777/todo-common</url>
-		</repository>
-	</repositories>
-	<distributionManagement>
-		<!--<repository>
+    <repository>
+      <id>github</id>
+      <name>GitHub OWNER Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/rsp777/todo-common</url>
+    </repository>
+  </repositories>
+  <distributionManagement>
+    <!--<repository>
 			<id>my-repo-id</id>
 			<url>http://localhost:8081/repository/maven-snapshots/</url>
 		</repository>-->
-		<repository>
-			<id>github</id>
-			<name>GitHub OWNER Apache Maven Packages</name>
-			<url>https://maven.pkg.github.com/rsp777/sop</url>
-		</repository>
-	</distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub OWNER Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/rsp777/sop</url>
+    </repository>
+  </distributionManagement>
 </project>

@@ -12,11 +12,11 @@
 	<parent>
 		<groupId>com.pawar.inventory</groupId>
 		<artifactId>sop</artifactId>
-		<version>Dev_v1.3</version>
+		<version>Dev_v2.0</version>
 	</parent>
 	<groupId>com.pawar.inventory</groupId>
 	<artifactId>sop-assignment-service</artifactId>
-	<version>Dev_v1.2</version>
+	<version>Dev_v2.0</version>
 	<packaging>jar</packaging>
 
 	<name>sop-assignment-service</name>
@@ -53,7 +53,7 @@
 		<dependency>
 			<groupId>com.pawar.todo</groupId>
 			<artifactId>common</artifactId>
-			<version>Dev_v1.3</version>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
@@ -92,6 +92,13 @@
 		<dependency>
 			<groupId>com.pawar.inventory</groupId>
 			<artifactId>sop-http2</artifactId>
+			<version>Dev_v1.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.36</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	<!--<distributionManagement>

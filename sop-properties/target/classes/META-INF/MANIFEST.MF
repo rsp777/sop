@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Build-Jdk-Spec: 21
 Implementation-Title: sop-properties
-Implementation-Version: Dev_v1.2
+Implementation-Version: Dev_v2.0
 Created-By: Maven Integration for Eclipse
 

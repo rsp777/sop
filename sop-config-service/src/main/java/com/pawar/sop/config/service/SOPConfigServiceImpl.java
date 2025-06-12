@@ -184,8 +184,11 @@ public class SOPConfigServiceImpl implements SOPConfigService {
 	}
 
 	@Override
-	public List<SopEligibleLocationsDto> getEligibleLocations() {
-		List<SopEligibleLocations> sopEligibleLocations = sopEligibleLocationsRepository.findAll();
+	public List<SopEligibleLocationsDto> getEligibleLocations(String sopActionType, String category) {
+		
+		SopActionType actionType = sopActionTypeRepository.findByActionType(sopActionType);
+		int sopActionTypeId = actionType.getSopActionTypeId();
+		List<SopEligibleLocations> sopEligibleLocations = sopEligibleLocationsRepository.findSopEligibleLocationsByCategoryAndSopActionType(sopActionTypeId,category);
 		List<SopEligibleLocationsDto> sopEligibleLocationsDtos = new ArrayList<>();
 		for (SopEligibleLocations sopEligibleLocation : sopEligibleLocations) {
 
@@ -254,6 +257,12 @@ public class SOPConfigServiceImpl implements SOPConfigService {
 	public List<SopActionType> getActionTypes() {
 		List<SopActionType> sopActionType = sopActionTypeRepository.findAll();
 		return sopActionType;
+	}
+
+	@Override
+	public void deleteEligibleLocation(Integer sopEligibleLocationsId) {
+		logger.info("Deleting the Eligible Location with Id: {}",sopEligibleLocationsId);
+		sopEligibleLocationsRepository.deleteById(sopEligibleLocationsId);;
 	}
 
 	

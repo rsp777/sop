@@ -10,6 +10,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -24,6 +26,10 @@ public class Batch {
     @Column(nullable = false)
     private String batchId;
     
+	@ManyToOne
+	@JoinColumn(name = "batch_type_id")
+    private BatchType batchType;
+    
     @Column(nullable = false)
     private int status;
 
@@ -34,4 +40,6 @@ public class Batch {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     @Column(nullable = true)
     private LocalDateTime updatedAt;
+    
+    
 }

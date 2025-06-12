@@ -3,6 +3,7 @@ package com.pawar.sop.assignment.log.wrapper;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,13 +42,17 @@ public class SopLogWrapper {
 	}
 	
 	Map<String, Object> queryParams;
-	public String createBatch(String actionType) throws ClientProtocolException, IOException {
+	
+	@SuppressWarnings("unlikely-arg-type")
+	public String createBatch(String actionType, String batchType) throws ClientProtocolException, IOException {
 		String batchId = "";
 		String url = sopLogServiceConfiguration.getCreateBatchURL();
 		logger.info("Create Batch URL : {}", url);
-		logger.info("Creating New Batch with actionType : {}", actionType);
-		queryParams = Map.of("actionType",actionType);
+		logger.info("Creating New Batch with actionType : {} and batchType : {}", actionType,batchType);
+		queryParams = Map.of("actionType",actionType,"batchType",batchType);
 		ResponseEntity<String> response = (ResponseEntity<String>) httpService.restCall(url, HttpMethod.POST, actionType,queryParams);
+		logger.info("response : {}",response);
+
 		batchId = response.getBody();
 		logger.info("Created New Batch {} with status : {}", batchId, actionType);
 		return batchId;
@@ -67,7 +72,7 @@ public class SopLogWrapper {
 		String url = sopLogServiceConfiguration.getCreateLogURL();
 		logger.info("Create Log URL : {}", url);
 		logger.info("Writing Log for Batch : {}", logEntryDto.getBatchId());
-		httpUtils.restCall(url, HttpMethod.POST, logEntryDto,null);
+		httpService.restCall(url, HttpMethod.POST, logEntryDto,null);
 		logger.info("Written Log for Batch : {}", logEntryDto.getBatchId());
 	}
 

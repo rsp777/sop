@@ -23,7 +23,7 @@ public interface SOPConfigService {
 
 	String updateLocationRange(Integer id, SopLocationRangeDto sopLocationRangeDto);
 
-	List<SopEligibleLocationsDto> getEligibleLocations();
+	List<SopEligibleLocationsDto> getEligibleLocations(String sopActionType, String category);
 
 	List<SopEligibleLocationsDto> getEligibleLocationsByCategory(String category);
 
@@ -32,5 +32,7 @@ public interface SOPConfigService {
 	SopActionType getActionType(String actionType);
 
 	List<SopActionType> getActionTypes();
+
+	void deleteEligibleLocation(Integer sopEligibleLocationsId);
 
 }

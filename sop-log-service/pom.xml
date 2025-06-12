@@ -7,12 +7,12 @@
 	<parent>
 		<groupId>com.pawar.inventory</groupId>
 		<artifactId>sop</artifactId>
-		<version>Dev_v1.3</version>
+		<version>Dev_v2.0</version>
 	</parent>
 	<groupId>com.pawar.inventory</groupId>
 	<artifactId>sop-log-service</artifactId>
-	<version>Dev_v1.3</version>
-	<name>Archetype - sop-log-service</name>
+	<version>Dev_v2.0</version>
+	<name>sop-log-service</name>
 	<url>http://maven.apache.org</url>
 
 	<dependencies>
@@ -47,7 +47,7 @@
 		<dependency>
 			<groupId>com.pawar.todo</groupId>
 			<artifactId>common</artifactId>
-			<version>Dev_v1.3</version>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>

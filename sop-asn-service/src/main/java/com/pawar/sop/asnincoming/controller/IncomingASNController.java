@@ -30,7 +30,7 @@ public class IncomingASNController {
 	
 	
 	@GetMapping("/asns")
-	public ResponseEntity<List<ASNDto>> getAsnByStatus(@RequestParam String category) {
+	public ResponseEntity<List<ASNDto>> getAsn(@RequestParam String category) {
 		try {
 			List<ASNDto> asnDto = incomingASNService.getAsn(category);
 			logger.info("Incoming ASN : {}", asnDto);

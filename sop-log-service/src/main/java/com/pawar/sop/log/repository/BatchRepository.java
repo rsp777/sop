@@ -13,6 +13,9 @@ import com.pawar.sop.log.model.Batch;
 public interface BatchRepository extends JpaRepository<Batch, Long> {
 	@Query(value = "SELECT * FROM batch WHERE DATE(created_at) = CURRENT_DATE ORDER BY created_at DESC LIMIT 1",nativeQuery = true)
 	Batch fetchLatestBatch();
-	Batch findByBatchId(String batchId);
+	Optional<Batch> findByBatchId(String batchId);
+//	Optional<Batch> findByBatchId(String batchId);
+
+//	Batch fetchLatestBatchByPrefixDate(String prefix, String datePart);
 
 }

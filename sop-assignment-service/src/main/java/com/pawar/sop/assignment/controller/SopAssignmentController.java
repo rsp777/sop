@@ -60,9 +60,9 @@ public class SopAssignmentController {
 
 	}  
 
-	 @GetMapping(value = "/assignment/upcs", produces = "application/json")
-	    public ResponseEntity<List<SopEligibleItemsDto>> getEligibleUpcs() throws ClientProtocolException, IOException {
-	        List<SopEligibleItemsDto> eligibleItems = sopAssignService.getEligibleUpcs("Electronics");
+	 @GetMapping(value = "/assignment/upcs/{category}", produces = "application/json")
+	    public ResponseEntity<List<SopEligibleItemsDto>> getEligibleUpcs(@PathVariable String category) throws ClientProtocolException, IOException {
+	        List<SopEligibleItemsDto> eligibleItems = sopAssignService.getEligibleUpcs("Electronics",null);
 	        return new ResponseEntity<>(eligibleItems, HttpStatus.OK);
 	    }
 //
