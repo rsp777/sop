@@ -18,13 +18,11 @@ public interface SopEligibleItemsRepository extends JpaRepository<SopEligibleIte
 	
 	Optional<SopEligibleItems> findByAsnBrcdAndItemBrcd(String asnBrcd,String itemBrcd);
 	List<SopEligibleItems> findByItemBrcd(String itemBrcd);
-
-	
 	
 	@Transactional
 	void deleteByItemId(int item_id);
 	List<SopEligibleItems> findByIsAssigned(String isAssigned);
-	List<SopEligibleItems> findByCategoryAndIsAssigned(String category, String isAssigned);
+	List<SopEligibleItems> findByCategory(String category);
 
 	
 }

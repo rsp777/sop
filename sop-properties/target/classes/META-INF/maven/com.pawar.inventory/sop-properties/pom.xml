@@ -5,11 +5,11 @@
   <parent>
     <groupId>com.pawar.inventory</groupId>
     <artifactId>sop</artifactId>
-    <version>Dev_v1.6</version>
+    <version>Dev_v2.0</version>
   </parent>
   <groupId>com.pawar.inventory</groupId>
   <artifactId>sop-properties</artifactId>
-  <version>Dev_v1.6</version>
+  <version>Dev_v2.0</version>
   <name>sop-properties</name>
   <url>http://maven.apache.org</url>
 </project>

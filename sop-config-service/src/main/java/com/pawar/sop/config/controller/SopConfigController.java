@@ -154,9 +154,9 @@ public class SopConfigController {
 		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 	}
 
-	@GetMapping(value = "/eligible-locations/list", produces = "application/json")
-	public ResponseEntity<List<SopEligibleLocationsDto>> getEligibleLocations() {
-		List<SopEligibleLocationsDto> eligibleLocations = sopConfigService.getEligibleLocations();
+	@GetMapping(value = "/eligible-locations/sopActionType/{sopActionType}/category/{category}", produces = "application/json")
+	public ResponseEntity<List<SopEligibleLocationsDto>> getEligibleLocations(@PathVariable String sopActionType,@PathVariable String category) {
+		List<SopEligibleLocationsDto> eligibleLocations = sopConfigService.getEligibleLocations(sopActionType,category);
 		return new ResponseEntity<>(eligibleLocations, HttpStatus.OK);
 	}
 	
@@ -167,6 +167,14 @@ public class SopConfigController {
 		SopEligibleLocationsDto sopEligibleLocationsDto = mapper.convertValue(payload, SopEligibleLocationsDto.class);
 		logger.info("sopEligibleLocationsDto : "+sopEligibleLocationsDto);
 		String response = sopConfigService.updateEligibleLocation(sopEligibleLocationsDto);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@DeleteMapping(value = "/eligible-locations/delete/id/{id}", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<?> deleteEligibleLocation(@PathVariable Integer id) {
+		logger.info("Deleting Eligible Location with Id : {]",id);
+		sopConfigService.deleteEligibleLocation(id);
+		String response = "Success";
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	

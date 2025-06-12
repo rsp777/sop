@@ -44,10 +44,6 @@ public class SopEligibleItems {
 	@Column(name = "asn_lpn_info")
 	private String asnLpnInfo;
 
-	@JsonProperty("locn_info")
-	@Column(name = "locn_info")
-	private String locnInfo;
-
 	@JsonProperty("asn_intran_qty")
 	@Column(name = "asn_intran_qty")
 	private int asnInTranQty;
@@ -110,7 +106,6 @@ public class SopEligibleItems {
 		this.itemBrcd = sopEligibleItemsDto.getItem_brcd();
 		this.asnBrcd = sopEligibleItemsDto.getAsnBrcd();
 		this.asnLpnInfo = sopEligibleItemsDto.getAsnLpnInfo();
-		this.locnInfo = sopEligibleItemsDto.getLocnInfo();
 		this.asnInTranQty = sopEligibleItemsDto.getAsnInTranQty();
 		this.asnRcvQty = sopEligibleItemsDto.getAsnRcvQty();
 		this.resvQty = sopEligibleItemsDto.getResvQty();
@@ -134,7 +129,6 @@ public class SopEligibleItems {
 		this.itemBrcd = itemBrcd;
 		this.asnBrcd = asnBrcd;
 		this.asnLpnInfo = asnLpnInfo;
-		this.locnInfo = locnInfo;
 		this.asnInTranQty = asnInTranQty;
 		this.asnRcvQty = asnRcvQty;
 		this.resvQty = resvQty;
@@ -187,14 +181,6 @@ public class SopEligibleItems {
 
 	public void setAsnLpnInfo(String asnLpnInfo) {
 		this.asnLpnInfo = asnLpnInfo;
-	}
-
-	public String getLocnInfo() {
-		return locnInfo;
-	}
-
-	public void setLocnInfo(String locnInfo) {
-		this.locnInfo = locnInfo;
 	}
 
 	public int getAsnInTranQty() {
@@ -297,24 +283,18 @@ public class SopEligibleItems {
 //		
 //	}
 
-	@Override
-	public String toString() {
-		return "SopEligibleItems [sopEligibleItemsId=" + sopEligibleItemsId + ", itemId=" + itemId + ", itemBrcd="
-				+ itemBrcd + ", asnBrcd=" + asnBrcd + ", aasnLpnInfo=" + asnLpnInfo + ", locnInfo=" + locnInfo
-				+ ", asnInTranQty=" + asnInTranQty + ", asnRcvQty=" + asnRcvQty + ", resvQty=" + resvQty + ", category="
-				+ category + ", length=" + length + ", width=" + width + ", height=" + height + ", isAssigned="
-				+ isAssigned + ", createdDttm=" + createdDttm + ", lastUpdatedDttm=" + lastUpdatedDttm
-				+ ", createdSource=" + createdSource + ", lastUpdatedSource=" + lastUpdatedSource + "]";
-	}
+	
 
 	public SopEligibleItemsDto convertEntityToDto(SopEligibleItems sopEligibleItem) {
 		SopEligibleItemsDto sopEligibleItemsDto = new SopEligibleItemsDto();
 		sopEligibleItemsDto.setSopEligibleItemsId(sopEligibleItem.getSopEligibleItemsId());
 		sopEligibleItemsDto.setItem_id(sopEligibleItem.getItemId());
 		sopEligibleItemsDto.setItem_brcd(sopEligibleItem.getItemBrcd());
+		sopEligibleItemsDto.setLength(sopEligibleItem.getLength());
+		sopEligibleItemsDto.setWidth(sopEligibleItem.getWidth());
+		sopEligibleItemsDto.setHeight(sopEligibleItem.getHeight());
 		sopEligibleItemsDto.setAsnBrcd(sopEligibleItem.getAsnBrcd());
 		sopEligibleItemsDto.setAsnLpnInfo(sopEligibleItem.getAsnLpnInfo());
-		sopEligibleItemsDto.setLocnInfo(sopEligibleItem.getLocnInfo());
 		sopEligibleItemsDto.setAsnInTranQty(sopEligibleItem.getAsnInTranQty());
 		sopEligibleItemsDto.setAsnRcvQty(sopEligibleItem.getAsnRcvQty());
 		sopEligibleItemsDto.setResvQty(sopEligibleItem.getResvQty());
@@ -326,6 +306,16 @@ public class SopEligibleItems {
 		sopEligibleItemsDto.setCreatedSource(sopEligibleItem.getCreatedSource());
 		sopEligibleItemsDto.setLastUpdatedSource(sopEligibleItem.getLastUpdatedSource());
 		return sopEligibleItemsDto;
+	}
+
+	@Override
+	public String toString() {
+		return "SopEligibleItems [sopEligibleItemsId=" + sopEligibleItemsId + ", itemId=" + itemId + ", itemBrcd="
+				+ itemBrcd + ", asnBrcd=" + asnBrcd + ", asnLpnInfo=" + asnLpnInfo + ", asnInTranQty=" + asnInTranQty
+				+ ", asnRcvQty=" + asnRcvQty + ", resvQty=" + resvQty + ", category=" + category + ", length=" + length
+				+ ", width=" + width + ", height=" + height + ", isAssigned=" + isAssigned + ", createdDttm="
+				+ createdDttm + ", lastUpdatedDttm=" + lastUpdatedDttm + ", createdSource=" + createdSource
+				+ ", lastUpdatedSource=" + lastUpdatedSource + "]";
 	}
 
 

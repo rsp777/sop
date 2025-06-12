@@ -68,7 +68,7 @@ public class InventoryWrapper {
 //			logger.info("Response Body : {}", response.getBody());
 			if (!response.toString().contains("404")) {
 				isExists = true;
-			} 
+			}
 			logger.info("isExists : " + isExists);
 			return isExists;
 		} catch (RestClientException e) {
@@ -86,7 +86,7 @@ public class InventoryWrapper {
 			inventory.put("location", locnBrcd);
 
 		}
-		
+
 		inventory_json.put("inventory", inventory);
 		logger.info("{}", inventory_json);
 		String json = inventory_json.toString();

@@ -39,13 +39,13 @@ private static final Logger logger = LoggerFactory.getLogger(HttpService.class);
                 queryParams.forEach((key, value) -> 
                     builder.queryParam(key, String.valueOf(value)));
             }
-
+            logger.info("queryParams : {} ",queryParams);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
             HttpEntity<Object> httpEntity = new HttpEntity<>(body, headers);
-
+            logger.info("build url : {}  ",builder.build().toUri());
             return restTemplate.exchange(
                 builder.build().toUri(), 
                 method, 

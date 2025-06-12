@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -78,12 +79,6 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 	public List<SopEligibleItemsDto> getEligibleUpcs(String category, LogEntryDto logEntryDto)
 			throws ClientProtocolException, IOException {
 		List<SopEligibleItemsDto> dbSopEligibleItemsDtos = fetchEligibleUpcsFromDb(category);
-		if (dbSopEligibleItemsDtos.isEmpty()) {
-			List<SopEligibleItemsDto> sopEligibleItemsDtos = fetchEligibleUpcs(category, logEntryDto);
-			logger.info("Eligible Items : {}", sopEligibleItemsDtos);
-			saveEligibleUpcs(sopEligibleItemsDtos);
-			return sopEligibleItemsDtos;
-		}
 		logger.info("Eligible Items : {}", dbSopEligibleItemsDtos);
 		return dbSopEligibleItemsDtos;
 	}
@@ -92,7 +87,7 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 
 		List<SopEligibleItemsDto> sopEligibleItemsDtos = new ArrayList<>();
 		SopEligibleItemsDto sopEligibleItemsDto = new SopEligibleItemsDto();
-		List<SopEligibleItems> sopEligibleItems = sopEligibleItemsRepository.findByCategoryAndIsAssigned(category, "N");
+		List<SopEligibleItems> sopEligibleItems = sopEligibleItemsRepository.findByCategory(category);
 
 		if (!sopEligibleItems.isEmpty()) {
 			for (SopEligibleItems sopEligibleItem : sopEligibleItems) {
@@ -104,469 +99,155 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 		return sopEligibleItemsDtos;
 	}
 
-	@Transactional
-	public void saveEligibleUpcs(Object sopEligibleItemsDtos) {
-		logger.info("Eligible Upcs {}", sopEligibleItemsDtos);
-
-		if (sopEligibleItemsDtos instanceof List<?>) {
-			List<?> itemsList = (List<?>) sopEligibleItemsDtos;
-
-			for (Object sopEligibleItemsDto : itemsList) {
-
-				if (sopEligibleItemsDto instanceof SopEligibleItemsDto) {
-					saveEligibleUpc((SopEligibleItemsDto) sopEligibleItemsDto);
-				}
-			}
-		} else if (sopEligibleItemsDtos instanceof SopEligibleItemsDto) {
-			saveEligibleUpc((SopEligibleItemsDto) sopEligibleItemsDtos);
-		}
-
-	}
-
-	private void saveEligibleUpc(SopEligibleItemsDto sopEligibleItemsDto) {
-		SopEligibleItems eligibleItems = new SopEligibleItems(sopEligibleItemsDto);
-		Optional<SopEligibleItems> eligibleItems2 = sopEligibleItemsRepository
-				.findByAsnBrcdAndItemBrcd(eligibleItems.getAsnBrcd(), eligibleItems.getItemBrcd());
-		logger.info("{}", eligibleItems.getAsnLpnInfo());
-		logger.info("eligibleItems2.isEmpty() : {}", eligibleItems2.isEmpty());
-
-		if (eligibleItems2.isEmpty()) {
-			sopEligibleItemsRepository.save(eligibleItems);
-
-		}
-	}
-
-	public void updateEligibleUpc(SopEligibleItemsDto sopEligibleItemsDto) {
-		SopEligibleItems eligibleItems = new SopEligibleItems(sopEligibleItemsDto);
-		List<SopEligibleItems> existingItemOptList = sopEligibleItemsRepository
-				.findByItemBrcd(eligibleItems.getItemBrcd());
-		logger.info("Update Eligible Upcs : {}", existingItemOptList);
-		if (!existingItemOptList.isEmpty()) {
-			for (SopEligibleItems existingItem : existingItemOptList) {
-				logger.info("Updating Eligible Upcs : {}", existingItem);
-				existingItem.setIsAssigned(sopEligibleItemsDto.getIsAssigned()); // Assuming this is set to "Y" before
-				existingItem.setLastUpdatedDttm(sopEligibleItemsDto.getLastUpdatedDttm());
-				existingItem.setLastUpdatedSource(sopEligibleItemsDto.getLastUpdatedSource()); // calling this method
-				sopEligibleItemsRepository.save(existingItem);
-				logger.info("Updated Eligible Upcs : {}", existingItem);
-			}
-		}
-	}
-
-	@Override
-	public void deleteEligibleUpc(SopEligibleItemsDto sopEligibleItemsDto) {
-		logger.info("Deleting Eligible Upc {}", sopEligibleItemsDto.getItem_brcd());
-		sopEligibleItemsRepository.deleteByItemId(sopEligibleItemsDto.getItem_id());
-		logger.info("Deleted Eligible Upc {}", sopEligibleItemsDto.getItem_brcd());
-	}
-
-	public List<SopEligibleItemsDto> fetchEligibleUpcs(String category, LogEntryDto logEntryDto)
-			throws ClientProtocolException, IOException {
-		List<SopEligibleItemsDto> sopEligibleItemsDtos = new ArrayList<>();
-		List<ASNDto> fetchedASNDtos = inventoryWrapper.fetchASNs(category);
-		List<LpnDto> fetchedLpnDtos = inventoryWrapper.fetchLpns(category);
-//		logger.info("fetchedASNDtos : {}", fetchedASNDtos);
-//		logger.info("fetchedLpnDtos : {}", fetchedLpnDtos);
-
-		for (ASNDto asnDto : fetchedASNDtos) {
-			List<LpnDto> lpnDtos = asnDto.getLpns();
-			for (LpnDto lpnDto : lpnDtos) {
-
-				logger.info("condition : {} , ASN : {}, Lpn : {}",
-						((asnDto.getAsnStatus() == AsnStatusConstants.IN_TRANSIT)
-								&& (lpnDto.getLpn_facility_status() == LpnFacilityStatusContants.IN_TRANSIT)),
-						asnDto.getAsnBrcd() + " " + asnDto.getAsnStatus(),
-						lpnDto.getLpn_name() + " " + lpnDto.getLpn_facility_status());
-
-				logger.info("condition : {} , ASN : {}, Lpn : {}",
-						((asnDto.getAsnStatus() == AsnStatusConstants.RECEIVED)
-								&& (lpnDto.getLpn_facility_status() == LpnFacilityStatusContants.PUTAWAY)),
-						asnDto.getAsnBrcd() + " " + asnDto.getAsnStatus(),
-						lpnDto.getLpn_name() + " " + lpnDto.getLpn_facility_status());
-
-				if ((asnDto.getAsnStatus() == AsnStatusConstants.IN_TRANSIT)
-						&& (lpnDto.getLpn_facility_status() == LpnFacilityStatusContants.IN_TRANSIT)) {
-					SopEligibleItemsDto sopEligibleItemsDto = createSopEligibleItemsDto(lpnDto, asnDto);
-					String itemBrcd = sopEligibleItemsDto.getItem_brcd();
-					boolean inventoryExists = checkActiveInventory(itemBrcd);
-					logger.info("inventoryExists : {}, itemBrcd : {}", inventoryExists, itemBrcd);
-
-					if (inventoryExists) {
-						String inventoryMessage = "Assignment blocked - Active inventory exists for item " + itemBrcd;
-						logger.info(inventoryMessage);
-						logEntryDto.setMessage(inventoryMessage);
-						logEntryDto.setCreatedAt(LocalDateTime.now());
-						sopLogWrapper.createLog(logEntryDto);
-					} else {
-						sopEligibleItemsDtos.add(sopEligibleItemsDto);
-
-					}
-
-				} else if ((asnDto.getAsnStatus() == AsnStatusConstants.RECEIVED)
-						&& (lpnDto.getLpn_facility_status() == LpnFacilityStatusContants.PUTAWAY)) {
-					SopEligibleItemsDto sopEligibleItemsDto = createSopEligibleItemsDto(lpnDto, asnDto);
-					String itemBrcd = sopEligibleItemsDto.getItem_brcd();
-
-					boolean inventoryExists = checkActiveInventory(itemBrcd);
-					logger.info("inventoryExists : {}, itemBrcd : {}", inventoryExists, itemBrcd);
-					if (inventoryExists) {
-						String inventoryMessage = "Assignment blocked - Active inventory exists for item " + itemBrcd;
-						logger.info(inventoryMessage);
-						logEntryDto.setMessage(inventoryMessage);
-						logEntryDto.setCreatedAt(LocalDateTime.now());
-						sopLogWrapper.createLog(logEntryDto);
-					} else {
-						sopEligibleItemsDtos.add(sopEligibleItemsDto);
-
-					}
-
-				} else {
-					logger.info("No Eligible UPCs");
-				}
-			}
-		}
-		if (fetchedASNDtos.isEmpty()) {
-			for (LpnDto lpnDto : fetchedLpnDtos) {
-
-				if (lpnDto.getLpn_facility_status() == LpnFacilityStatusContants.PUTAWAY) {
-					SopEligibleItemsDto sopEligibleItemsDto = createSopEligibleItemsDto(lpnDto);
-					String itemBrcd = sopEligibleItemsDto.getItem_brcd();
-
-					boolean inventoryExists = checkActiveInventory(itemBrcd);
-
-					if (inventoryExists) {
-						String inventoryMessage = "Assignment blocked - Active inventory exists for item " + itemBrcd;
-						logger.info(inventoryMessage);
-						logEntryDto.setMessage(inventoryMessage);
-						logEntryDto.setCreatedAt(LocalDateTime.now());
-						sopLogWrapper.createLog(logEntryDto);
-					} else {
-						sopEligibleItemsDtos.add(sopEligibleItemsDto);
-
-					}
-				} else {
-					logger.info("No Eligible UPCs");
-				}
-
-			}
-		}
-		return sopEligibleItemsDtos;
-	}
-
-	public String getAsnLpnInfo(ASNDto asnDto, LpnDto lpnDto) {
-
-		String asnLpnInfo = "";
-		if (asnDto != null) {
-			String asnBrcd = lpnDto.getAsn_brcd();
-			String lpnBrcd = lpnDto.getLpn_name();
-			String itemBrcd = getItemBrcdByLpn(lpnDto);
-			asnLpnInfo = asnLpnInfo + "ASN : " + asnBrcd + " ,Lpn : " + lpnBrcd + " , Item : " + itemBrcd;
-
-		} else {
-			String lpnBrcd = lpnDto.getLpn_name();
-			String itemBrcd = getItemBrcdByLpn(lpnDto);
-			asnLpnInfo = asnLpnInfo + "Lpn : " + lpnBrcd + ", Item : " + itemBrcd;
-
-		}
-		return asnLpnInfo;
-	}
-
-	public String getItemBrcdByLpn(LpnDto lpnDto) {
-		String itemBrcd = "";
-		itemBrcd = lpnDto.getItem().getItemName();
-		return itemBrcd;
-	}
-
-	public int getInTransitQty(ASNDto asnDto) {
-		int inTransitQty = 0;
-
-		if (asnDto != null) {
-			if (asnDto.getAsnStatus() == AsnStatusConstants.IN_TRANSIT) {
-				inTransitQty = asnDto.getTotalQuantity();
-				return inTransitQty;
-			}
-		}
-		return inTransitQty;
-
-	}
-
-	public int getRcvQty(ASNDto asnDto) {
-		int rcvQty = 0;
-		if (asnDto != null) {
-			if (asnDto.getAsnStatus() == AsnStatusConstants.RECEIVED) {
-				List<LpnDto> lpnDtos = asnDto.getLpns();
-				for (LpnDto lpnDto : lpnDtos) {
-
-					if (lpnDto.getLpn_facility_status() == LpnFacilityStatusContants.CREATED) {
-						int lpnQty = lpnDto.getQuantity();
-						rcvQty = rcvQty + lpnQty;
-					}
-
-				}
-				return rcvQty;
-			}
-		}
-		return rcvQty;
-
-	}
-
-	public int getResvQty(LpnDto lpnDto) {
-		int resvQty = 0;
-		if (lpnDto != null) {
-			if (lpnDto.getLpn_facility_status() == LpnFacilityStatusContants.PUTAWAY) {
-
-				int lpnQty = lpnDto.getQuantity();
-				resvQty = lpnQty;
-				return resvQty;
-			}
-		}
-		return resvQty;
-	}
-
-	public int getResvQty(ASNDto asnDto) {
-		int resvQty = 0;
-		if (asnDto != null) {
-			if (asnDto.getAsnStatus() == AsnStatusConstants.RECEIVED) {
-				List<LpnDto> lpnDtos = asnDto.getLpns();
-				for (LpnDto lpnDto : lpnDtos) {
-
-					if (lpnDto.getLpn_facility_status() == LpnFacilityStatusContants.PUTAWAY) {
-						int lpnQty = lpnDto.getQuantity();
-						resvQty = resvQty + lpnQty;
-					}
-
-				}
-				return resvQty;
-			}
-		}
-		return resvQty;
-	}
-
-	public String getCategory(ASNDto asnDto) {
-		String category = "";
-		if (asnDto != null) {
-
-			List<LpnDto> lpnDtos = asnDto.getLpns();
-			for (LpnDto lpnDto : lpnDtos) {
-				if (category.equals("")) {
-					category = lpnDto.getItem().getCategory().getCategory_name();
-				} else {
-					category = category + " , " + lpnDto.getItem().getCategory().getCategory_name();
-				}
-				return category;
-			}
-		}
-		return category;
-	}
-
-	public String getCategory(LpnDto lpnDto) {
-		String category = "";
-		if (lpnDto != null) {
-
-			if (category.equals("")) {
-				category = lpnDto.getItem().getCategory().getCategory_name();
-			} else {
-				category = category + " , " + lpnDto.getItem().getCategory().getCategory_name();
-			}
-			return category;
-
-		}
-		return category;
-	}
-
-	private SopEligibleItemsDto createSopEligibleItemsDto(LpnDto lpnDto, ASNDto asnDto)
-			throws ClientProtocolException, IOException {
-		SopEligibleItemsDto sopEligibleItemsDto = new SopEligibleItemsDto();
-		populateSopEligibleItemsDto(sopEligibleItemsDto, lpnDto, asnDto);
-		return sopEligibleItemsDto;
-	}
-
-	private SopEligibleItemsDto createSopEligibleItemsDto(LpnDto lpnDto) throws ClientProtocolException, IOException {
-		SopEligibleItemsDto sopEligibleItemsDto = new SopEligibleItemsDto();
-		populateSopEligibleItemsDto(sopEligibleItemsDto, lpnDto, null);
-		return sopEligibleItemsDto;
-	}
-
-	private void populateSopEligibleItemsDto(SopEligibleItemsDto sopEligibleItemsDto, LpnDto lpnDto, ASNDto asnDto)
-			throws ClientProtocolException, IOException {
-
-//			logger.info("ASN : {}, Lpn : {}, Item : {}", lpnDto.getAsn_brcd(), lpnDto.getLpn_name(),
-//					lpnDto.getItem().getItem_name());
-		sopEligibleItemsDto.setItem_id(lpnDto.getItem().getItem_id());
-		sopEligibleItemsDto.setItem_brcd(lpnDto.getItem().getItemName());
-		sopEligibleItemsDto.setLength(lpnDto.getItem().getUnit_length());
-		sopEligibleItemsDto.setWidth(lpnDto.getItem().getUnit_width());
-		sopEligibleItemsDto.setHeight(lpnDto.getItem().getUnit_height());
-		sopEligibleItemsDto.setIsAssigned("N");
-		if (asnDto != null) {
-//				logger.info("ASN : {}, Lpn : {}, Item : {}", asnDto.getAsnBrcd(), lpnDto.getLpn_name(),
-//						lpnDto.getItem().getItem_name());
-			sopEligibleItemsDto.setAsnBrcd(asnDto.getAsnBrcd());
-			sopEligibleItemsDto.setResvQty(getResvQty(asnDto));
-			sopEligibleItemsDto.setAsnInTranQty(getInTransitQty(asnDto));
-			sopEligibleItemsDto.setAsnRcvQty(getRcvQty(asnDto));
-			sopEligibleItemsDto.setAsnLpnInfo(getAsnLpnInfo(asnDto, lpnDto));
-			sopEligibleItemsDto.setCategory(getCategory(asnDto));
-		} else {
-//				logger.info("ASN : {}, Lpn : {}, Item : {}", lpnDto.getAsn_brcd(), lpnDto.getLpn_name(),
-//						lpnDto.getItem().getItem_name());
-//				logger.info("getResvQty(lpnDto) {}, item : {}", getResvQty(lpnDto), lpnDto.getItem().getItem_name());
-			sopEligibleItemsDto.setAsnLpnInfo(getAsnLpnInfo(null, lpnDto));
-			sopEligibleItemsDto.setResvQty(getResvQty(lpnDto));
-			sopEligibleItemsDto.setCategory(getCategory(lpnDto));
-		}
-
-		sopEligibleItemsDto.setCreatedDttm(LocalDateTime.now());
-		sopEligibleItemsDto.setLastUpdatedDttm(LocalDateTime.now());
-		sopEligibleItemsDto.setCreatedSource("sop-assignment-service");
-		sopEligibleItemsDto.setLastUpdatedSource("sop-assignment-service");
-	}
-
 	@Override
 	@Transactional
 	public String createAssignment(AssignmentModel assignmentModel) throws ClientProtocolException, IOException {
 
-		if (assignmentModel.getSopActionType().equals("ASSIGN")) {
+		if (assignmentModel.getSopActionType().equals("ASSIGN")
+				&& assignmentModel.getBatchType().equals("BATCHTIMEASSIGN")) {
 			String actionType = assignmentModel.getSopActionType();
+			String batchType = assignmentModel.getBatchType();
 			String category = assignmentModel.getCategory();
 			logger.info("Action Type : {} ", actionType);
-			String batchId = sopLogWrapper.createBatch(actionType);
-			LogEntryDto logEntryDto = new LogEntryDto();
-			Set<String> assignedItems = new HashSet<>();
+			String batchId = sopLogWrapper.createBatch(actionType, batchType);
+			logger.info("RESPONSE : {}", batchId);
+			String HttpStatus_SC_ACCEPTED = String.valueOf("<202 ACCEPTED Accepted");
+			logger.info("HttpStatus_SC_ACCEPTED : {}", HttpStatus_SC_ACCEPTED);
+			logger.info("batchId.contains(HttpStatus_SC_ACCEPTED) : {}", batchId.contains(HttpStatus_SC_ACCEPTED));
+			if(batchId.contains("Batch is in progress")) {
+				return batchId;
+			}
+			
+			else if (batchId.contains(HttpStatus_SC_ACCEPTED)) {
+				logger.info("RESPONSEE : {}", batchId.contains(HttpStatus_SC_ACCEPTED));
+				return batchId;
 
-			logEntryDto.setBatchId(batchId);
-			logEntryDto.setBatchMode(actionType);
-			logEntryDto.setMessage(SopConstants.NEW_BATCH + actionType + String.format(SopConstants.TRIGGERED, category));
-			logEntryDto.setCreatedAt(LocalDateTime.now());
-			logEntryDto.setServiceName(SopConstants.SERVICE_NAME);
-			logEntryDto.setIpAddress(Inet4Address.getLocalHost().getHostAddress());
-			sopLogWrapper.createLog(logEntryDto);
+			} else {
+				LogEntryDto logEntryDto = new LogEntryDto();
+				Set<String> assignedItems = new HashSet<>();
 
-			logger.info("Starting to create assignment");
-			List<SopEligibleItemsDto> sopEligibleItemsDtos = getEligibleUpcs(category, logEntryDto);
-			int eligibleUpcsCount = getEligibleUpcsCount(sopEligibleItemsDtos);
-			logEntryDto.setModuleName(SopConstants.ELIGIBLE_UPCS_MODULE);
-			logEntryDto.setMessage("Total " + eligibleUpcsCount + " Eligible UPCs found ");
-			logEntryDto.setCreatedAt(LocalDateTime.now());
-			sopLogWrapper.updateBatchStatus(batchId, BatchStatus.ELIGIBLE_UPCS_FOUND);
-			sopLogWrapper.createLog(logEntryDto);
-
-			if (sopEligibleItemsDtos.isEmpty()) {
-				logEntryDto.setMessage(SopConstants.ASSIGNMENT_INTERRUPTED_NO_ELIGIBLE_UPCS);
+				logEntryDto.setBatchId(batchId);
+				logEntryDto.setBatchMode(actionType+" : "+batchType);
+				logEntryDto.setMessage(
+						SopConstants.NEW_BATCH + actionType + String.format(SopConstants.TRIGGERED, category));
 				logEntryDto.setCreatedAt(LocalDateTime.now());
-				sopLogWrapper.updateBatchStatus(batchId, BatchStatus.FAILED);
+				logEntryDto.setServiceName(SopConstants.SERVICE_NAME);
+				logEntryDto.setIpAddress(Inet4Address.getLocalHost().getHostAddress());
 				sopLogWrapper.createLog(logEntryDto);
 
-				return SopConstants.ASSIGNMENT_INTERRUPTED_NO_ELIGIBLE_UPCS;
-			}
-
-			logger.info("Eligible UPCs : {}", sopEligibleItemsDtos);
-			List<SopEligibleLocationsDto> sopEligibleLocationsDtos = sopConfigWrapper.getEligibleLocations(category);
-			logEntryDto.setModuleName("Eligible Locations module");
-			logEntryDto.setMessage("Total " + sopEligibleLocationsDtos.size() + " Eligible Locations found ");
-			logEntryDto.setCreatedAt(LocalDateTime.now());
-			sopLogWrapper.updateBatchStatus(batchId, BatchStatus.ELIGIBLE_LOCATIONS_FOUND);
-			sopLogWrapper.createLog(logEntryDto);
-
-			if (sopEligibleLocationsDtos.isEmpty()) {
-				logEntryDto.setMessage(SopConstants.ASSIGNMENT_INTERRUPTED_NO_ELIGIBLE_LOCATIONS);
+				logger.info("Starting to create assignment");
+				List<SopEligibleItemsDto> sopEligibleItemsDtos = getEligibleUpcs(category, logEntryDto);
+				int eligibleUpcsCount = getEligibleUpcsCount(sopEligibleItemsDtos);
+				logEntryDto.setModuleName(SopConstants.ELIGIBLE_UPCS_MODULE);
+				logEntryDto.setMessage("Total " + eligibleUpcsCount + " Eligible UPCs found ");
 				logEntryDto.setCreatedAt(LocalDateTime.now());
-				sopLogWrapper.updateBatchStatus(batchId, BatchStatus.FAILED);
+				sopLogWrapper.updateBatchStatus(batchId, BatchStatus.ELIGIBLE_UPCS_FOUND);
 				sopLogWrapper.createLog(logEntryDto);
-				return SopConstants.ASSIGNMENT_INTERRUPTED_NO_ELIGIBLE_LOCATIONS;
-			}
 
-			logger.info("Eligible Locations : {}", sopEligibleLocationsDtos);
-			for (SopEligibleItemsDto sopEligibleItemsDto : sopEligibleItemsDtos) {
-				boolean itemAssigned = false;
-				for (SopEligibleLocationsDto sopEligibleLocationsDto : sopEligibleLocationsDtos) {
-					synchronized (this) {
-						String itemBrcd = sopEligibleItemsDto.getItem_brcd();
-						String locnBrcd = sopEligibleLocationsDto.getLocn_brcd();
-						logEntryDto.setItem(sopEligibleItemsDto.getItem_brcd());
-						logEntryDto.setLocation(sopEligibleLocationsDto.getLocn_brcd());
-						logEntryDto.setModuleName("Assignment Module");
-						logEntryDto.setAsn(sopEligibleItemsDto.getAsnBrcd());
-						int assignedUpc = sopEligibleLocationsDto.getAssignedNbrOfUpc();
+				if (sopEligibleItemsDtos.isEmpty()) {
+					logEntryDto.setMessage(SopConstants.ASSIGNMENT_INTERRUPTED_NO_ELIGIBLE_UPCS);
+					logEntryDto.setCreatedAt(LocalDateTime.now());
+					sopLogWrapper.updateBatchStatus(batchId, BatchStatus.FAILED);
+					sopLogWrapper.createLog(logEntryDto);
 
-						// Skip locations with existing UPC assignments
-						if (assignedUpc > 0) {
-							String skipMessage = String.format("Skipping location %s - already has %d UPC(s) assigned",
-									locnBrcd, assignedUpc);
-							logger.info(skipMessage);
-							logEntryDto.setMessage(skipMessage);
-							logEntryDto.setCreatedAt(LocalDateTime.now());
-							sopLogWrapper.createLog(logEntryDto);
-							continue;
+					return SopConstants.ASSIGNMENT_INTERRUPTED_NO_ELIGIBLE_UPCS;
+				}
+
+				logger.info("Eligible UPCs : {}", sopEligibleItemsDtos);
+				List<SopEligibleLocationsDto> sopEligibleLocationsDtos = sopConfigWrapper
+						.getEligibleLocations(category);
+				logEntryDto.setModuleName("Eligible Locations module");
+				logEntryDto.setMessage("Total " + sopEligibleLocationsDtos.size() + " Eligible Locations found ");
+				logEntryDto.setCreatedAt(LocalDateTime.now());
+				sopLogWrapper.updateBatchStatus(batchId, BatchStatus.ELIGIBLE_LOCATIONS_FOUND);
+				sopLogWrapper.createLog(logEntryDto);
+
+				if (sopEligibleLocationsDtos.isEmpty()) {
+					logEntryDto.setMessage(SopConstants.ASSIGNMENT_INTERRUPTED_NO_ELIGIBLE_LOCATIONS);
+					logEntryDto.setCreatedAt(LocalDateTime.now());
+					sopLogWrapper.updateBatchStatus(batchId, BatchStatus.FAILED);
+					sopLogWrapper.createLog(logEntryDto);
+					return SopConstants.ASSIGNMENT_INTERRUPTED_NO_ELIGIBLE_LOCATIONS;
+				}
+
+				logger.info("Eligible Locations : {}", sopEligibleLocationsDtos);
+				for (SopEligibleItemsDto sopEligibleItemsDto : sopEligibleItemsDtos) {
+					boolean itemAssigned = false;
+					for (SopEligibleLocationsDto sopEligibleLocationsDto : sopEligibleLocationsDtos) {
+						synchronized (this) {
+							String itemBrcd = sopEligibleItemsDto.getItem_brcd();
+							String locnBrcd = sopEligibleLocationsDto.getLocn_brcd();
+							logEntryDto.setItem(sopEligibleItemsDto.getItem_brcd());
+							logEntryDto.setLocation(sopEligibleLocationsDto.getLocn_brcd());
+							logEntryDto.setModuleName("Assignment Module");
+							logEntryDto.setAsn(sopEligibleItemsDto.getAsnBrcd());
+							int assignedUpc = sopEligibleLocationsDto.getAssignedNbrOfUpc();
+
+							// Skip locations with existing UPC assignments
+							if (assignedUpc > 0) {
+								String skipMessage = String.format(
+										"Skipping location %s - already has %d UPC(s) assigned", locnBrcd, assignedUpc);
+								logger.info(skipMessage);
+								logEntryDto.setMessage(skipMessage);
+								logEntryDto.setCreatedAt(LocalDateTime.now());
+								sopLogWrapper.createLog(logEntryDto);
+								continue;
+							}
+
+							if (canAssign(sopEligibleLocationsDto, sopEligibleItemsDto, logEntryDto, sopLogWrapper)) {
+								sopLogWrapper.updateBatchStatus(batchId, BatchStatus.ASSIGNMENT_IN_PROGRESS);
+
+								logger.info("Creating Assignment for UPC: {} and Location : {}", itemBrcd, locnBrcd);
+								String message = String.format("Creating Assignment for UPC: %s and Location : %s",
+										itemBrcd, locnBrcd);
+								logEntryDto.setMessage(message);
+								sopLogWrapper.createLog(logEntryDto);
+								inventoryWrapper.createInventory(itemBrcd, locnBrcd);
+								assignedItems.add(itemBrcd);
+								itemAssigned = true;
+								message = String.format("Created Assignment for UPC: %s and Location : %s", itemBrcd,
+										locnBrcd);
+								logEntryDto.setCreatedAt(LocalDateTime.now());
+								logEntryDto.setMessage(message);
+								sopLogWrapper.createLog(logEntryDto);
+								sopConfigWrapper.updateSopEligibleLocations(sopEligibleLocationsDto);
+								logger.info("Location updated with ");
+							} else {
+								String message = String.format(
+										FAILED_TO_CREATED_ASSIGNMENT + " : Check Item Dimensions: %s", itemBrcd);
+								logEntryDto.setMessage(message);
+								logEntryDto.setCreatedAt(LocalDateTime.now());
+								sopLogWrapper.createLog(logEntryDto);
+								logger.info("Check Item Dimensions : {}", itemBrcd);
+							}
 						}
-
-						if (canAssign(sopEligibleLocationsDto, sopEligibleItemsDto, logEntryDto, sopLogWrapper)
-								&& sopEligibleItemsDto.getIsAssigned().equals("N")) {
-							sopLogWrapper.updateBatchStatus(batchId, BatchStatus.ASSIGNMENT_IN_PROGRESS);
-
-							logger.info("Creating Assignment for UPC: {} and Location : {}", itemBrcd, locnBrcd);
-							String message = String.format("Creating Assignment for UPC: %s and Location : %s", itemBrcd,
-									locnBrcd);
-							logEntryDto.setMessage(message);
-							sopLogWrapper.createLog(logEntryDto);
-							inventoryWrapper.createInventory(itemBrcd, locnBrcd);
-							sopEligibleItemsDto.setIsAssigned("Y");
-							sopEligibleItemsDto.setLastUpdatedDttm(LocalDateTime.now());
-							sopEligibleItemsDto.setLastUpdatedSource("assignment-service");
-							updateEligibleUpc(sopEligibleItemsDto);
-//						saveEligibleUpcs(sopEligibleItemsDtos);
-//						deleteEligibleUpc(sopEligibleItemsDto);
-							assignedItems.add(itemBrcd);
-							itemAssigned = true;
-							message = String.format("Created Assignment for UPC: %s and Location : %s", itemBrcd, locnBrcd);
-							logEntryDto.setCreatedAt(LocalDateTime.now());
-							logEntryDto.setMessage(message);
-							sopLogWrapper.createLog(logEntryDto);
-
-							sopEligibleLocationsDto.setAssignedNbrOfUpc(sopEligibleLocationsDto.getAssignedNbrOfUpc() + 1);
-							sopEligibleLocationsDto.setLastUpdatedDttm(LocalDateTime.now());
-							sopEligibleLocationsDto.setLastUpdatedSource("assignment-service");
-							sopConfigWrapper.updateSopEligibleLocations(sopEligibleLocationsDto);
-							logger.info("Location updated with ");
-						} else {
-							String message = String.format(FAILED_TO_CREATED_ASSIGNMENT + " : Check Item Dimensions: %s",
-									itemBrcd);
-							logEntryDto.setMessage(message);
-							logEntryDto.setCreatedAt(LocalDateTime.now());
-							sopLogWrapper.createLog(logEntryDto);
-							logger.info("Check Item Dimensions : {}", itemBrcd);
+						if (itemAssigned) {
+							logger.info("Assigned item: {}", sopEligibleItemsDto.getItem_brcd());
 						}
-//					 else {
-//						String message = String.format("Location : %s already assigned with Item : %s", locnBrcd, itemBrcd);
-//						logEntryDto.setMessage(message);
-//						logEntryDto.setCreatedAt(LocalDateTime.now());
-//						sopLogWrapper.createLog(logEntryDto);
-//						logger.info("Location : {} already assigned with Item : {}", locnBrcd, itemBrcd);
-//					}
-					}
-					if (itemAssigned) {
-						logger.info("Assigned item: {}", sopEligibleItemsDto.getItem_brcd());
 					}
 				}
+				logger.info("Compare eligibleUpcs : {} and Assigned Items count : {}", eligibleUpcsCount,
+						assignedItems.size());
+				if (assignedItems.size() != 0 && eligibleUpcsCount >= assignedItems.size()) {
+					logEntryDto.setMessage(ASSIGNMENT_CREATED_SUCCESSFULLY);
+					logEntryDto.setCreatedAt(LocalDateTime.now());
+					sopLogWrapper.updateBatchStatus(batchId, BatchStatus.COMPLETED);
+					sopLogWrapper.createLog(logEntryDto);
+					return SopConstants.ASSIGNMENT_CREATED_SUCCESSFULLY;
+				} else {
+					logEntryDto.setMessage(FAILED_TO_CREATED_ASSIGNMENT);
+					logEntryDto.setCreatedAt(LocalDateTime.now());
+					sopLogWrapper.updateBatchStatus(batchId, BatchStatus.FAILED);
+					sopLogWrapper.createLog(logEntryDto);
+					return SopConstants.FAILED_TO_CREATE_ASSIGNMENT;
+				}
 			}
-			logger.info("Compare eligibleUpcs : {} and Assigned Items count : {}", eligibleUpcsCount, assignedItems.size());
-			if (assignedItems.size() != 0 && eligibleUpcsCount >= assignedItems.size()) {
-				logEntryDto.setMessage(ASSIGNMENT_CREATED_SUCCESSFULLY);
-				logEntryDto.setCreatedAt(LocalDateTime.now());
-				sopLogWrapper.updateBatchStatus(batchId,BatchStatus.COMPLETED);
-				sopLogWrapper.createLog(logEntryDto);
-				return SopConstants.ASSIGNMENT_CREATED_SUCCESSFULLY;
-			} else {
-				logEntryDto.setMessage(FAILED_TO_CREATED_ASSIGNMENT);
-				logEntryDto.setCreatedAt(LocalDateTime.now());
-				sopLogWrapper.updateBatchStatus(batchId, BatchStatus.FAILED);
-				sopLogWrapper.createLog(logEntryDto);
-				return SopConstants.FAILED_TO_CREATE_ASSIGNMENT;
-			}
-		}else {
-			return String.format(SopConstants.INVALID_ACTION_TYPE_PLEASE_USE_UNASSIGN_SERVICE, assignmentModel.getSopActionType()) ;
+
+		} else {
+			return String.format(SopConstants.INVALID_ACTION_TYPE_PLEASE_USE_UNASSIGN_SERVICE,
+					assignmentModel.getSopActionType());
 		}
-		
+
 	}
 
 	private boolean canAssign(SopEligibleLocationsDto location, SopEligibleItemsDto item, LogEntryDto logEntryDto,
@@ -580,9 +261,9 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 
 		// Validate numerical constraints
 		if (location.getLength() <= 0 || location.getWidth() <= 0 || item.getLength() <= 0 || item.getWidth() <= 0) {
-			logger.warn("Invalid dimensions - Location: {} {}, Item: {} {}", location.getLength(), location.getWidth(),
+			logger.error("Invalid dimensions - Location: {} {}, Item: {} {}", location.getLength(), location.getWidth(),
 					item.getLength(), item.getWidth());
-			String message = String.format("Invalid dimensions - Location: {}{}, Item: {}{}", location.getLength(),
+			String message = String.format("Invalid dimensions - Location: %.2f ,%.2f | Item: %.2f ,%.2f", location.getLength(),
 					location.getWidth(), item.getLength(), item.getWidth());
 			logEntryDto.setMessage(message);
 			logEntryDto.setCreatedAt(LocalDateTime.now());
@@ -644,8 +325,8 @@ public class SOPAssignServiceImpl implements SOPAssignService {
 				&& location.getHeight() >= item.getHeight()) {
 			isfits = true;
 		} else {
-			String message = String.format("Invalid dimensions - Location: {}{}, Item: {}{}", location.getLength(),
-					location.getWidth(), item.getLength(), item.getWidth());
+			String message = String.format("Invalid dimensions - Location: %.2f, %.2f , %.2f |  Item: %.2f, %.2f , %.2f", location.getLength(),
+					location.getWidth(),location.getHeight(), item.getLength(), item.getWidth(),item.getHeight());
 			logEntryDto.setMessage(message);
 			logEntryDto.setCreatedAt(LocalDateTime.now());
 			sopLogWrapper.createLog(logEntryDto);
