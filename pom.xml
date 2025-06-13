@@ -26,27 +26,27 @@
       <dependency>
         <groupId>com.pawar.inventory</groupId>
         <artifactId>sop-config-service</artifactId>
-        <version>Dev_v1.6</version>
+        <version>Dev_v2.0</version>
       </dependency>
       <dependency>
         <groupId>com.pawar.inventory</groupId>
         <artifactId>sop-assignment-service</artifactId>
-        <version>Dev_v1.6</version>
+        <version>Dev_v2.0</version>
       </dependency>
       <dependency>
         <groupId>com.pawar.inventory</groupId>
         <artifactId>sop-asn-service</artifactId>
-        <version>Dev_v1.6</version>
+        <version>Dev_v2.0</version>
       </dependency>
       <dependency>
         <groupId>com.pawar.inventory</groupId>
         <artifactId>sop-http2</artifactId>
-        <version>Dev_v1.6</version>
+        <version>Dev_v2.0</version>
       </dependency>
       <dependency>
         <groupId>com.pawar.inventory</groupId>
         <artifactId>sop-log-service</artifactId>
-        <version>Dev_v1.6</version>
+        <version>Dev_v2.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
