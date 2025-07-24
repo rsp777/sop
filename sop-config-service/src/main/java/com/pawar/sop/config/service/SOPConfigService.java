@@ -30,6 +30,8 @@ public interface SOPConfigService {
 	String updateEligibleLocation(SopEligibleLocationsDto sopEligibleLocationsDto);
 
 	SopActionType getActionType(String actionType);
+	
+	SopActionType getActionTypeId(String actionType);
 
 	List<SopActionType> getActionTypes();
 

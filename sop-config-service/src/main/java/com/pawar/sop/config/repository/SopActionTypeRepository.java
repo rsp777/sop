@@ -10,5 +10,6 @@ import com.pawar.sop.config.model.SopActionType;
 public interface SopActionTypeRepository extends JpaRepository<SopActionType, Integer> {
 
 	SopActionType findByActionType(String actionType);
+	SopActionType findBysopActionTypeId(Integer sopActionTypeId);
 
 }

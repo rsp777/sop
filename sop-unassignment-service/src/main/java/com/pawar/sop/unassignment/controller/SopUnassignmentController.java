@@ -31,7 +31,7 @@ import com.pawar.sop.unassignment.service.SOPUnassignService;
 
 
 @RestController
-@RequestMapping("/sop-unassignment-service")
+@RequestMapping("/")
 public class SopUnassignmentController {
 
 	private final static Logger logger = LoggerFactory.getLogger(SopUnassignmentController.class);

@@ -12,17 +12,20 @@
 	<parent>
 		<groupId>com.pawar.inventory</groupId>
 		<artifactId>sop</artifactId>
-		<version>Dev_v2.0</version>
+		<version>Dev_v2.1</version>
 	</parent>
 	<groupId>com.pawar.inventory</groupId>
 	<artifactId>sop-assignment-service</artifactId>
-	<version>Dev_v2.0</version>
+	<version>Dev_v2.1</version>
 	<packaging>jar</packaging>
 
 	<name>sop-assignment-service</name>
 	<description>sop-assignment-service</description>
 	<dependencies>
-
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-actuator</artifactId>
+	</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
@@ -92,13 +95,18 @@
 		<dependency>
 			<groupId>com.pawar.inventory</groupId>
 			<artifactId>sop-http2</artifactId>
-			<version>Dev_v1.6</version>
+			<version>Dev_v2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.18.36</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+   			<groupId>de.codecentric</groupId>
+    		<artifactId>spring-boot-admin-starter-client</artifactId>
+    		<version>3.1.5</version>
 		</dependency>
 	</dependencies>
 	<!--<distributionManagement>

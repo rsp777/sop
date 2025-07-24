@@ -30,7 +30,7 @@ import com.pawar.sop.config.model.SopEligibleLocations;
 import com.pawar.sop.config.service.SOPConfigService;
 
 @RestController
-@RequestMapping("/sop-config-service")
+@RequestMapping("/")
 public class SopConfigController {
 
 	private final static Logger logger = LoggerFactory.getLogger(SopConfigController.class);
@@ -57,15 +57,33 @@ public class SopConfigController {
 
 	}
 	
-	@GetMapping(value = "/action-type/{actionType}")
-	public ResponseEntity<?> getActionType(@PathVariable String actionType) {
-		logger.info("Action Type  : " + actionType);
+//	@GetMapping(value = "/action-type/{actionType}")
+//	public ResponseEntity<?> getActionType(@PathVariable String actionType) {
+//		logger.info("Action Type  : " + actionType);
+//		ObjectMapper mapper = new ObjectMapper();
+//		mapper.registerModule(new JavaTimeModule());
+//
+//
+//		try {
+//			SopActionType response = sopConfigService.getActionType(actionType);
+//			logger.info(""+response);
+//			return new ResponseEntity<SopActionType>(response, HttpStatus.OK);
+//		} catch (Exception e) {
+//			logger.error("Exception occurred: ", e);
+//			return new ResponseEntity<String>("An error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
+//
+//	}
+	
+	@GetMapping(value = "/action-type/{sopActionTypeId}")
+	public ResponseEntity<?> getActionTypeById(@PathVariable String sopActionTypeId) {
+		logger.info("Action Type  ID: " + sopActionTypeId);
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.registerModule(new JavaTimeModule());
 
 
 		try {
-			SopActionType response = sopConfigService.getActionType(actionType);
+			SopActionType response = sopConfigService.getActionTypeId(sopActionTypeId);
 			logger.info(""+response);
 			return new ResponseEntity<SopActionType>(response, HttpStatus.OK);
 		} catch (Exception e) {
@@ -74,7 +92,6 @@ public class SopConfigController {
 		}
 
 	}
-	
 	
 	@CrossOrigin(origins = "*", allowedHeaders = "*")
 	@PostMapping(value = "/action-type/add", consumes = "application/json", produces = "application/json")

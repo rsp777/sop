@@ -31,7 +31,7 @@ import com.pawar.sop.assignment.service.SOPAssignService;
 
 
 @RestController
-@RequestMapping("/sop-assignment-service")
+@RequestMapping("/")
 public class SopAssignmentController {
 
 	private final static Logger logger = LoggerFactory.getLogger(SopAssignmentController.class);
@@ -62,7 +62,7 @@ public class SopAssignmentController {
 
 	 @GetMapping(value = "/assignment/upcs/{category}", produces = "application/json")
 	    public ResponseEntity<List<SopEligibleItemsDto>> getEligibleUpcs(@PathVariable String category) throws ClientProtocolException, IOException {
-	        List<SopEligibleItemsDto> eligibleItems = sopAssignService.getEligibleUpcs("Electronics",null);
+	        List<SopEligibleItemsDto> eligibleItems = sopAssignService.getEligibleUpcs(category,null);
 	        return new ResponseEntity<>(eligibleItems, HttpStatus.OK);
 	    }
 //

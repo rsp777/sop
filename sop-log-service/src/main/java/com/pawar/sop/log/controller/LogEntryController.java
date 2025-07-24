@@ -29,7 +29,7 @@ import com.pawar.sop.log.service.LogEntryService;
 import jakarta.persistence.EntityNotFoundException;
 
 @RestController
-@RequestMapping("/sop-log-service")
+@RequestMapping("/")
 public class LogEntryController {
 
 	private final static Logger logger = LoggerFactory.getLogger(LogEntryController.class);

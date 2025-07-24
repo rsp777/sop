@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -22,6 +23,7 @@ import com.pawar.sop.http.exception.RestClientException;
 import com.pawar.sop.http.exception.RestTimeoutException;
 
 @Service
+@Configuration
 public class HttpService {
 private static final Logger logger = LoggerFactory.getLogger(HttpService.class);
     
@@ -31,7 +33,7 @@ private static final Logger logger = LoggerFactory.getLogger(HttpService.class);
         this.restTemplate = restTemplate;
     }
 
-    public ResponseEntity<String> restCall(String url, HttpMethod method, 
+    public ResponseEntity<String> restCall(String decodedToken,String url, HttpMethod method, 
                                           Object body, Map<String, Object> queryParams) {
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
@@ -41,6 +43,9 @@ private static final Logger logger = LoggerFactory.getLogger(HttpService.class);
             }
             logger.info("queryParams : {} ",queryParams);
             HttpHeaders headers = new HttpHeaders();
+            if (decodedToken != null) {
+				headers.set("Authorization", decodedToken);
+			}
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 

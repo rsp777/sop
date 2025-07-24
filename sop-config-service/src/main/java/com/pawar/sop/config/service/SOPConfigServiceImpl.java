@@ -61,8 +61,17 @@ public class SOPConfigServiceImpl implements SOPConfigService {
 	}
 
 	@Override
+	public SopActionType getActionTypeId(String sopActionTypeId) {
+		logger.info("sopActionTypeId : {}", sopActionTypeId);
+		Integer sopActionTypeID = Integer.parseInt(sopActionTypeId);
+		SopActionType sopActionType = sopActionTypeRepository.findBysopActionTypeId(sopActionTypeID);
+		return sopActionType;
+	}
+	
+	@Override
 	public SopActionType getActionType(String actionType) {
-		logger.info("getActionType : {}", actionType);
+		logger.info("Action Type : {}", actionType);
+		Integer sopActionTypeID = Integer.parseInt(actionType);
 		SopActionType sopActionType = sopActionTypeRepository.findByActionType(actionType);
 		return sopActionType;
 	}
@@ -180,7 +189,10 @@ public class SOPConfigServiceImpl implements SOPConfigService {
 
 	@Override
 	public String updateLocationRange(Integer id, SopLocationRangeDto sopLocationRangeDto) {
-		return null;
+		SopLocationRange sopLocationRange =  sopLocationRangeRepository.findById(id).get();
+		SopLocationRange sopLocationRangee = new SopLocationRange(sopLocationRangeDto);
+		sopLocationRangeRepository.save(sopLocationRangee);
+		return "Location Range Updated Successfully";
 	}
 
 	@Override
@@ -264,6 +276,4 @@ public class SOPConfigServiceImpl implements SOPConfigService {
 		logger.info("Deleting the Eligible Location with Id: {}",sopEligibleLocationsId);
 		sopEligibleLocationsRepository.deleteById(sopEligibleLocationsId);;
 	}
-
-	
 }

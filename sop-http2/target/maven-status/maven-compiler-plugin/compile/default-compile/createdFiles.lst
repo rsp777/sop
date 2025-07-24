@@ -1,3 +1,4 @@
+com\pawar\sop\http\config\TimeoutConfig.class
 com\pawar\sop\http\logginginterceptor\LoggingInterceptor.class
 com\pawar\sop\http\exception\RestTimeoutException.class
 com\pawar\sop\http\service\HttpService.class
@@ -5,5 +6,6 @@ com\pawar\sop\http\logginginterceptor\package-info.class
 com\pawar\sop\http\exception\RestClientException.class
 com\pawar\sop\http\exception\package-info.class
 com\pawar\sop\http\resttemplate\package-info.class
+com\pawar\sop\http\config\package-info.class
 com\pawar\sop\http\service\package-info.class
 com\pawar\sop\http\resttemplate\RestTemplateConfig.class
