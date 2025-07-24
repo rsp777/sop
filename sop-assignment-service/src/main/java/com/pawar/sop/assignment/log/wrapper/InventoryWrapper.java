@@ -62,7 +62,7 @@ public class InventoryWrapper {
 		String url = inventoryServiceConfiguration.getCheckActiveInventoryURL();
 		logger.info("URL : {}", url);
 		try {
-			ResponseEntity<String> response = httpService.restCall(url, HttpMethod.POST, json, null);
+			ResponseEntity<String> response = httpService.restCall(null,url, HttpMethod.POST, json, null);
 			logger.info("Response : {}", response);
 
 //			logger.info("Response Body : {}", response.getBody());
@@ -98,14 +98,14 @@ public class InventoryWrapper {
 		logger.info("json ; " + json);
 		String url = inventoryServiceConfiguration.getCreateInventoryURL();
 		logger.info("CREATE_INVENTORY : {}", url);
-		String response = httpService.restCall(url, HttpMethod.POST, json, null).getBody().toString();
+		String response = httpService.restCall(null,url, HttpMethod.POST, json, null).getBody().toString();
 		logger.info(response);
 	}
 
 	public List<ASNDto> fetchASNs(String category) throws JsonMappingException, JsonProcessingException {
 		String url = asnServiceConfiguration.getASNByCategoryURL().replace("{category}", category);
 		logger.info("Get ASN URL : {}", url);
-		String json = httpService.restCall(url, HttpMethod.GET, null, null).getBody().toString();
+		String json = httpService.restCall(null,url, HttpMethod.GET, null, null).getBody().toString();
 		List<ASNDto> fetchedASNDtos = objectMapper.readValue(json, new TypeReference<List<ASNDto>>() {
 		});
 		return fetchedASNDtos;
@@ -114,7 +114,7 @@ public class InventoryWrapper {
 	public List<LpnDto> fetchLpns(String category) throws JsonMappingException, JsonProcessingException {
 		String url = inventoryServiceConfiguration.getGetLpnByCategoryURL().replace("{category}", category);
 		logger.info("Get LPN URL : {}", url);
-		String json = httpService.restCall(url, HttpMethod.GET, null, null).getBody().toString();
+		String json = httpService.restCall(null,url, HttpMethod.GET, null, null).getBody().toString();
 		logger.info(json);
 		List<LpnDto> fetchedLpnDtos = objectMapper.readValue(json, new TypeReference<List<LpnDto>>() {
 		});
