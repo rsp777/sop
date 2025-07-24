@@ -43,7 +43,7 @@ public class SopLogWrapper {
 		logger.info("Create Batch URL : {}", url);
 		logger.info("Creating New Batch with actionType : {}", actionType);
 		queryParams = Map.of("actionType",actionType,"batchType",batchType);
-		ResponseEntity<String> response = (ResponseEntity<String>) httpService.restCall(url, HttpMethod.POST, actionType,queryParams);
+		ResponseEntity<String> response = (ResponseEntity<String>) httpService.restCall(null,url, HttpMethod.POST, actionType,queryParams);
 		batchId = response.getBody();
 		logger.info("Created New Batch {} with status : {}", batchId, actionType);
 		return batchId;
@@ -54,7 +54,7 @@ public class SopLogWrapper {
 		logger.info("Updating Batch {} with status : {}", batchId, batchStatus);
 		BatchDto batchDto = new BatchDto(batchId, batchStatus);
 		queryParams = Map.of("batchId",batchId,"batchStatus",batchStatus);
-		ResponseEntity<String> response =  (ResponseEntity<String>) httpService.restCall(url, HttpMethod.PUT, batchDto,queryParams);
+		ResponseEntity<String> response =  (ResponseEntity<String>) httpService.restCall(null,url, HttpMethod.PUT, batchDto,queryParams);
 		batchId = response.getBody();
 		logger.info("Updated Batch {} with status : {}", batchId, batchStatus);
 	}
@@ -63,7 +63,7 @@ public class SopLogWrapper {
 		String url = sopLogServiceConfiguration.getCreateLogURL();
 		logger.info("Create Log URL : {}", url);
 		logger.info("Writing Log for Batch : {}", logEntryDto.getBatchId());
-		httpService.restCall(url, HttpMethod.POST, logEntryDto,null);
+		httpService.restCall(null,url, HttpMethod.POST, logEntryDto,null);
 		logger.info("Written Log for Batch : {}", logEntryDto.getBatchId());
 	}
 

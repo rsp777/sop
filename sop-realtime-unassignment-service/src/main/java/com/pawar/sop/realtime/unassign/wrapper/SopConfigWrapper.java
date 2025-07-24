@@ -39,7 +39,7 @@ public class SopConfigWrapper {
 		logger.info("ELIGIBILE_LOCATIONS_UPDATE : {}", url);
 		String sopEligibleLocationsJson = objectMapper.writeValueAsString(sopEligibleLocationsDto);
 		logger.info("sopEligibleLocationsJson : " + sopEligibleLocationsJson);
-		httpService.restCall(url, HttpMethod.PUT, sopEligibleLocationsJson, null);
+		httpService.restCall(null,url, HttpMethod.PUT, sopEligibleLocationsJson, null);
 		logger.info("Response SopEligibleLocations updated");
 	}
 
@@ -48,7 +48,7 @@ public class SopConfigWrapper {
 		String url = sopConfigServiceConfiguration.getEligibleLocationsURL().replace("{sopActionTypeId}", String.valueOf(sopActionTypeId)).replace("{category}", category);
 		
 		logger.info("ELIGIBILE_LOCATIONS_GET : {}", url);
-		String json = httpService.restCall(url, HttpMethod.GET, null, null).getBody().toString();
+		String json = httpService.restCall(null,url, HttpMethod.GET, null, null).getBody().toString();
 		List<SopEligibleLocationsDto> fetchedSopEligibleLocationsDtos = objectMapper.readValue(json,
 				new TypeReference<List<SopEligibleLocationsDto>>() {
 				});
@@ -61,7 +61,7 @@ public class SopConfigWrapper {
 		String url = sopConfigServiceConfiguration.getLocationRangeURL().replace("{fromLocation}", fromLocation)
 				.replace("{toLocation}", toLocation);
 		logger.info("LOCATION_RANGE_GET URL : {}", url);
-		String json = httpService.restCall(url, HttpMethod.GET, null, null).getBody().toString();
+		String json = httpService.restCall(null,url, HttpMethod.GET, null, null).getBody().toString();
 		List<Location> fetchedLocations = objectMapper.readValue(json, new TypeReference<List<Location>>() {
 		});
 		return fetchedLocations;
@@ -72,7 +72,7 @@ public class SopConfigWrapper {
 		String url = sopConfigServiceConfiguration.getEligibleLocationsDeleteURL().replace("{id}", String.valueOf(sopEligibleLocationsId));
 				
 		logger.info("LOCATION_RANGE_DELETE URL : {}", url);
-		httpService.restCall(url, HttpMethod.DELETE, null, null).getBody().toString();
+		httpService.restCall(null,url, HttpMethod.DELETE, null, null).getBody().toString();
 		logger.info("Eligible Location Deleted for id : {}",sopEligibleLocationsId);
 		
 	}
