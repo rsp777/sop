@@ -91,27 +91,8 @@ public class SOPUnassignServiceImpl implements SOPUnassignService {
 				sopLogWrapper.createLog(logEntryDto);
 
 				logger.info("Starting to unassignment");
-//				List<SopEligibleItemsDto> sopEligibleItemsDtos = getEligibleUpcs(category, logEntryDto);
-//				int eligibleUpcsCount = getEligibleUpcsCount(sopEligibleItemsDtos);
-//				logEntryDto.setModuleName(SopConstants.ELIGIBLE_UPCS_MODULE);
-//				logEntryDto.setMessage("Total " + eligibleUpcsCount + " Eligible UPCs found ");
-//				logEntryDto.setCreatedAt(LocalDateTime.now());
-//				sopLogWrapper.updateBatchStatus(batchId, BatchStatus.ELIGIBLE_UPCS_FOUND);
-//				sopLogWrapper.createLog(logEntryDto);
-
-//				if (sopEligibleItemsDtos.isEmpty()) {
-//					logEntryDto.setMessage(SopConstants.ASSIGNMENT_INTERRUPTED_NO_ELIGIBLE_UPCS);
-//					logEntryDto.setCreatedAt(LocalDateTime.now());
-//					sopLogWrapper.updateBatchStatus(batchId, BatchStatus.FAILED);
-//					sopLogWrapper.createLog(logEntryDto);
-				//
-//					return SopConstants.ASSIGNMENT_INTERRUPTED_NO_ELIGIBLE_UPCS;
-//				}
-				//
-//				logger.info("Eligible UPCs : {}", sopEligibleItemsDtos);
-				int sopActionTypeId = getSopActionTypeId(assignmentModel.getSopActionType());
 				List<SopEligibleLocationsDto> sopEligibleLocationsDtos = sopConfigWrapper
-						.getEligibleLocations(sopActionTypeId, category);
+						.getEligibleLocations(assignmentModel.getSopActionType(), category);
 				logEntryDto.setModuleName("Eligible Locations module");
 				logEntryDto.setMessage("Total " + sopEligibleLocationsDtos.size() + " Eligible Locations found ");
 				logEntryDto.setCreatedAt(LocalDateTime.now());

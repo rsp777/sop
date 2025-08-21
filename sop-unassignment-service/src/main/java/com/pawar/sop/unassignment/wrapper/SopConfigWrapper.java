@@ -53,9 +53,9 @@ public class SopConfigWrapper {
 		logger.info("Response SopEligibleLocations updated");
 	}
 
-	public List<SopEligibleLocationsDto> getEligibleLocations(Integer sopActionTypeId,String category)
+	public List<SopEligibleLocationsDto> getEligibleLocations(String sopActionType,String category)
 			throws JsonMappingException, JsonProcessingException {
-		String url = sopConfigServiceConfiguration.getEligibleLocationsURL().replace("{sopActionTypeId}", String.valueOf(sopActionTypeId)).replace("{category}", category);
+		String url = sopConfigServiceConfiguration.getEligibleLocationsURL().replace("{sopActionType}", sopActionType).replace("{category}", category);
 		
 		logger.info("ELIGIBILE_LOCATIONS_GET : {}", url);
 		String json = httpService.restCall(null,url, HttpMethod.GET, null, null).getBody().toString();
